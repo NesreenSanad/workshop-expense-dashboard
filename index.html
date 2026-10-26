@@ -1,0 +1,1933 @@
+<title>تحليل المصروفات الشهرية (بيانات تجريبية)</title>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22 width=%2264%22 height=%2264%22> <rect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22%231E3A8A%22/> <path d=%22M16 44V20C16 18 18 16 20 16H44C46 16 48 18 48 20V44%22 stroke=%22%23FFFFFF%22 stroke-width=%224%22 stroke-linecap=%22round%22 fill=%22none%22/> <rect x=%2222%22 y=%2232%22 width=%224%22 height=%228%22 rx=%221%22 fill=%22%2360A5FA%22/> <rect x=%2230%22 y=%2226%22 width=%224%22 height=%2214%22 rx=%221%22 fill=%22%2334D399%22/> <rect x=%2238%22 y=%2222%22 width=%224%22 height=%2218%22 rx=%221%22 fill=%22%23FBBF24%22/> </svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f1e8;
+  --surface: #ffffff;
+  --surface-2: #faf7f0;
+  --ink: #1c2430;
+  --ink-muted: #5d6773;
+  --ink-faint: #8b93a0;
+  --border: #ddd4c2;
+  --border-soft: #eae3d3;
+
+  --steel-50:  #e8eff5;
+  --steel-300: #7fa3bf;
+  --steel-500: #3d6f92;
+  --steel-700: #24506e;
+  --steel-900: #14293a;
+
+  --amber-50:  #f8ecdd;
+  --amber-300: #cf9a5c;
+  --amber-500: #b06a2e;
+  --amber-700: #7c481d;
+  --amber-900: #4a2a0f;
+
+  --other: #9d9382;
+  --other-dark: #6f6656;
+
+  --series-exp: #2a78d6;
+  --series-debit: #eb6834;
+  --series-credit: #1baf7a;
+  --series-balance: #4a3aa7;
+
+  /* ألوان الأعمدة الشهرية: لون واحد لكل الأشهر (الشهر نفسه على المحور، فلا
+     حاجة للونٍ يميّزه)، ودرجة أغمق للشهر الأعلى وحده. الارتفاع/الانخفاض في
+     رسم التغيّر الشهري زوجٌ تم التحقق منه لعمى الألوان وللطباعة. */
+  --chart-bar: #1f6fa8;
+  --chart-bar-peak: #13456b;
+  --chart-up: #b06a2e;
+  --chart-down: #1f6fa8;
+
+  /* تدرّج "الفولاذ المصقول": أفتح عند الأعلى وأغمق عند القاعدة. زينة فقط —
+     القيمة تبقى في الارتفاع وحده، والتدرّج نفسه لكل الأعمدة فلا يرمز لشيء.
+     كل طرف تم فحص تباينه مع الخلفية، وفحص تمييزه بين الأزرق والعنبري. */
+  --chart-bar-top: #2f86c4;
+  --chart-bar-bottom: #17547f;
+  --chart-peak-top: #1b5a8c;
+  --chart-peak-bottom: #0e3450;
+  --chart-up-top: #c98045;
+  --chart-up-bottom: #9c5a24;
+
+  --tooltip-bg: #1c2430;
+  --tooltip-ink: #f5f1e8;
+
+  --shadow: 0 1px 2px rgba(28,36,48,.06), 0 8px 24px -12px rgba(28,36,48,.18);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181e;
+    --surface: #1b2129;
+    --surface-2: #202832;
+    --ink: #ecebe6;
+    --ink-muted: #a3ada6;
+    --ink-faint: #737f78;
+    --border: #323b45;
+    --border-soft: #262e37;
+
+    --steel-50:  #223648;
+    --steel-300: #33424e;
+    --steel-500: #6ea0c2;
+    --steel-700: #94bfdc;
+    --steel-900: #4fa8e0;
+
+    --amber-50:  #3a2a18;
+    --amber-300: #4a3826;
+    --amber-500: #c1873f;
+    --amber-700: #d9ab6f;
+    --amber-900: #e8973f;
+
+    --other: #85796a;
+    --other-dark: #b2a793;
+
+    --series-exp: #3987e5;
+    --series-debit: #d95926;
+    --series-credit: #199e70;
+    --series-balance: #9085e9;
+    /* نفس خطوات الوضع الداكن الموجودة في كتلة [data-theme="dark"] أدناه —
+       الصفحة تدعم المسارين (تفضيل النظام، واختيار صريح)، فأي لون يُضاف
+       لأحدهما يجب أن يُضاف للآخر وإلا ظهر لون النهار على خلفية ليلية. */
+    --chart-bar: #4e9bdc;
+    --chart-bar-peak: #8fc5f0;
+    --chart-up: #c57f3e;
+    --chart-down: #4e9bdc;
+    --chart-bar-top: #6fb0e8;
+    --chart-bar-bottom: #3b7cb4;
+    --chart-peak-top: #a8d3f5;
+    --chart-peak-bottom: #6ba9d8;
+    --chart-up-top: #d2935a;
+    --chart-up-bottom: #a96a2c;
+
+    --tooltip-bg: #ecebe6;
+    --tooltip-ink: #14181e;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"] {
+  --series-exp: #3987e5;
+  --series-debit: #d95926;
+  --series-credit: #199e70;
+  --series-balance: #9085e9;
+  /* خطوات الوضع الداكن مُختارة ومُتحقَّق منها على سطحه، لا انعكاسًا لألوان النهار */
+  --chart-bar: #4e9bdc;
+  --chart-bar-peak: #8fc5f0;
+  --chart-up: #c57f3e;
+  --chart-down: #4e9bdc;
+  --chart-bar-top: #6fb0e8;
+  --chart-bar-bottom: #3b7cb4;
+  --chart-peak-top: #a8d3f5;
+  --chart-peak-bottom: #6ba9d8;
+  --chart-up-top: #d2935a;
+  --chart-up-bottom: #a96a2c;
+  --bg: #14181e;
+  --surface: #1b2129;
+  --surface-2: #202832;
+  --ink: #ecebe6;
+  --ink-muted: #a3ada6;
+  --ink-faint: #737f78;
+  --border: #323b45;
+  --border-soft: #262e37;
+
+  --steel-50:  #223648;
+  --steel-300: #33424e;
+  --steel-500: #6ea0c2;
+  --steel-700: #94bfdc;
+  --steel-900: #4fa8e0;
+
+  --amber-50:  #3a2a18;
+  --amber-300: #4a3826;
+  --amber-500: #c1873f;
+  --amber-700: #d9ab6f;
+  --amber-900: #e8973f;
+
+  --other: #85796a;
+  --other-dark: #b2a793;
+
+  --tooltip-bg: #ecebe6;
+  --tooltip-ink: #14181e;
+
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+  direction: rtl;
+  padding-inline: max(16px, 4vw);
+  padding-block: 32px 56px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+.num { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+
+/* ── Header ───────────────────────────────────────────────── */
+header { margin-bottom: 28px; }
+.eyebrow {
+  font-size: 12px; font-weight: 700; letter-spacing: .06em;
+  color: var(--steel-500); text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.eyebrow::before { content: ''; width: 20px; height: 2px; background: var(--steel-500); border-radius: 2px; }
+h1 {
+  font-size: clamp(24px, 3.4vw, 34px); font-weight: 800; margin: 0 0 8px;
+  text-wrap: balance; letter-spacing: -.01em;
+}
+.subhead {
+  font-size: 14.5px; color: var(--ink-muted); line-height: 1.7; max-width: 62ch;
+}
+.subhead .num { color: var(--ink); font-weight: 600; }
+
+.stat-strip {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;
+}
+.stat-pill {
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: 12px; padding: 12px 18px; box-shadow: var(--shadow);
+  flex: 1 1 160px; min-width: 150px;
+}
+.stat-pill .k { font-size: 11px; color: var(--ink-faint); font-weight: 600; margin-bottom: 4px; }
+.stat-pill .v { font-size: 19px; font-weight: 700; }
+.stat-pill .v.steel { color: var(--steel-500); }
+.stat-pill .v.amber { color: var(--amber-500); }
+
+/* ── Treemap panel ────────────────────────────────────────── */
+.panel {
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: 16px; padding: 22px 22px 18px; box-shadow: var(--shadow);
+  margin-top: 24px;
+}
+.panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.panel-head h2 { font-size: 16px; font-weight: 700; margin: 0; }
+.panel-head .hint { font-size: 12px; color: var(--ink-faint); }
+
+/* ── الملخص التنفيذي ─────────────────────────────────────────────────────── */
+.exec { border-top: 3px solid var(--steel-500); }
+.exec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(188px, 1fr)); gap: 12px; }
+/* سبع بطاقات: صفّان ٤ + ٣ أفضل من ٥ + ٢ */
+@media (min-width: 900px) { .exec-grid { grid-template-columns: repeat(4, 1fr); } }
+.exec-kpi { background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: 10px; padding: 14px 16px; }
+.exec-kpi .k { font-size: 11.5px; color: var(--ink-faint); font-weight: 600; margin-bottom: 6px; line-height: 1.5; }
+.exec-kpi .v { font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1.15; }
+.exec-kpi .v.sm { font-size: 16px; line-height: 1.35; }
+.exec-kpi .s { font-size: 11.5px; color: var(--ink-muted); margin-top: 5px; line-height: 1.6; }
+.exec-kpi.accent .v { color: var(--steel-500); }
+.exec-kpi.warm .v { color: var(--amber-500); }
+.exec-findings { margin-top: 18px; border-top: 1px solid var(--border-soft); padding-top: 14px; }
+.exec-findings h3 { font-size: 12.5px; font-weight: 700; color: var(--ink-faint); margin: 0 0 10px; letter-spacing: .3px; }
+.exec-findings ul { margin: 0; padding-inline-start: 20px; }
+.exec-findings li { font-size: 13.5px; line-height: 2; color: var(--ink); }
+.exec-findings li b { font-weight: 700; color: var(--steel-700); }
+.head-period { font-size: 12.5px; font-weight: 600; color: var(--ink-faint); margin-inline-start: 8px; }
+
+/* الطباعة: الملخص صفحة قائمة بذاتها، ولا يُقسَّم أي قسم بين صفحتين */
+@media print {
+  #exec-summary { break-after: page; page-break-after: always; }
+  .panel { break-inside: avoid; page-break-inside: avoid; }
+}
+
+#tmap-holder { position: relative; width: 100%; }
+#tmap-holder svg { display: block; width: 100%; height: auto; }
+
+#month-bar-holder, #month-line-holder, #bank-line-holder { position: relative; width: 100%; }
+#month-bar-holder svg, #month-line-holder svg, #bank-line-holder svg { display: block; width: 100%; height: auto; }
+.series-legend { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 10px; }
+.series-key { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-muted); }
+.series-swatch { width: 18px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+.series-swatch.dashed { background: repeating-linear-gradient(to left, var(--c) 0 5px, transparent 5px 8px); }
+.chart-note { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-soft); font-size: 12px; color: var(--ink-faint); line-height: 1.8; }
+.chart-note b { color: var(--ink-muted); }
+.tt-row .tt-key { display: inline-flex; align-items: center; gap: 6px; }
+.tt-row .tt-key i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+.month-bar-rect { cursor: pointer; transition: filter .12s ease; }
+.month-bar-rect:hover { filter: brightness(1.08); }
+.month-axis-label { font-family: 'Cairo', sans-serif; }
+.month-axis-value { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; direction: ltr; }
+.month-grid-line { stroke: var(--border-soft); stroke-width: 1; }
+.month-line-path { fill: none; stroke: var(--steel-500); stroke-width: 2.5; }
+.month-line-area { fill: var(--steel-500); opacity: .08; }
+.month-line-dot { fill: var(--surface); stroke: var(--steel-500); stroke-width: 2.5; cursor: pointer; }
+.month-line-dot:hover { fill: var(--steel-500); }
+
+.tile-label { font-family: 'Cairo', sans-serif; font-weight: 600; pointer-events: none; }
+.tile-value { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; pointer-events: none; direction: ltr; }
+.tile-rect { cursor: pointer; transition: filter .12s ease; }
+.tile-rect:hover { filter: brightness(1.08); }
+.tile-rect:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+
+/* ── Legend ───────────────────────────────────────────────── */
+.legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-muted); }
+.legend-swatch { width: 34px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+.legend-swatch.ramp-steel { background: linear-gradient(to left, var(--steel-900), var(--steel-300)); }
+.legend-swatch.ramp-amber { background: linear-gradient(to left, var(--amber-900), var(--amber-300)); }
+.legend-swatch.solid-other { background: var(--other); }
+.legend-item b { color: var(--ink); font-weight: 700; }
+
+/* ── Tooltip ──────────────────────────────────────────────── */
+#tooltip {
+  position: fixed; pointer-events: none; z-index: 50;
+  background: var(--tooltip-bg); color: var(--tooltip-ink);
+  border-radius: 10px; padding: 10px 13px; font-size: 12.5px;
+  box-shadow: 0 12px 32px -10px rgba(0,0,0,.4);
+  opacity: 0; transform: translateY(4px); transition: opacity .1s ease, transform .1s ease;
+  max-width: 260px;
+}
+#tooltip.show { opacity: 1; transform: translateY(0); }
+#tooltip .tt-title { font-weight: 700; margin-bottom: 5px; font-size: 13.5px; }
+#tooltip .tt-row { display: flex; justify-content: space-between; gap: 14px; opacity: .88; }
+#tooltip .tt-row + .tt-row { margin-top: 2px; }
+#tooltip .tt-note { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(128,128,128,.3); opacity: .75; font-size: 11.5px; }
+
+/* ── Table ────────────────────────────────────────────────── */
+.table-panel { margin-top: 18px; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--border-soft); border-radius: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); min-width: 640px; }
+thead th {
+  text-align: right; font-size: 11px; font-weight: 700; color: var(--ink-faint);
+  text-transform: uppercase; letter-spacing: .04em;
+  padding: 12px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border-soft);
+  position: sticky; top: 0;
+}
+thead th.num-col, tbody td.num-col { text-align: left; }
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--surface-2); }
+.rank { color: var(--ink-faint); font-weight: 600; }
+.src-name { font-weight: 600; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px;
+}
+.badge.single { background: var(--steel-50); color: var(--steel-700); }
+.badge.compound { background: var(--amber-50); color: var(--amber-700); }
+.badge.other { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--border-soft); }
+.badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.share-bar-wrap { display:flex; align-items:center; gap:8px; }
+.share-bar-track { flex:1; height:6px; border-radius:4px; background: var(--surface-2); overflow:hidden; min-width:50px; }
+.share-bar-fill { height: 100%; border-radius: 4px; }
+
+footer.note { margin-top: 22px; font-size: 12px; color: var(--ink-faint); line-height: 1.8; }
+
+/* ── Raw data by month ────────────────────────────────────────────── */
+.month-chip-row { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 16px; }
+.month-chip {
+  display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-muted);
+  background: var(--surface-2); border: 1px solid var(--border-soft);
+  border-radius: 20px; padding: 5px 12px 5px 10px;
+}
+.dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+tr.month-divider td {
+  background: var(--surface-2); font-weight: 700; font-size: 12.5px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border-soft);
+  border-top: 1px solid var(--border-soft); color: var(--ink);
+}
+tr.month-divider:first-child td { border-top: none; }
+tr.raw-row td { padding-top: 7px; padding-bottom: 7px; }
+tr.raw-row .src-cell { color: var(--ink-muted); font-size: 12.5px; }
+tr.raw-row .month-dot-cell { width: 26px; padding-inline-end: 0; }
+
+@media (max-width: 640px) {
+  .panel { padding: 16px 14px 14px; }
+  thead th, tbody td { padding: 9px 10px; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">سجل مصروفات يومية · ورشة تشغيل معادن</div>
+    <h1>تحليل المصروفات الشهرية</h1>
+<p style="margin:6px 0 0;font-size:13px;opacity:.75">نسخة تجريبية: الأرقام والأسماء معدّلة لأغراض العرض · Demo version with anonymised data</p>
+    <div class="subhead">
+      تجميع <span class="num" id="hdr-rows">—</span> بندًا من <span class="num" id="hdr-sheets">—</span> كشف مصروفات،
+      من <b id="hdr-from">—</b> إلى <b id="hdr-to">—</b>، حسب مصدر الصرف بالضبط كما كُتب في كل كشف —
+      فتُحسب "تكاليف الفرع الثاني" وحدها بمعزل عن "تأمينات، تكاليف الفرع الثاني" كسطرين مختلفين، تمامًا كما يميّزهما دفتر الكشوف نفسه.
+    </div>
+    <div class="stat-strip">
+      <div class="stat-pill"><div class="k">إجمالي المصروفات</div><div class="v num" id="stat-total">—</div></div>
+      <div class="stat-pill"><div class="k">أكبر بند منفرد</div><div class="v steel" id="stat-top">—</div></div>
+      <div class="stat-pill"><div class="k">مجموع تكلفة العمالة: أجور عمال، أجور موظفين، مصروف عمال، قبض العيد</div><div class="v amber" id="stat-labor">—</div></div>
+      <!-- مصروفات ثابتة شهرية لا تُكتب في كشوف المصروفات (سحب بنكي مباشر)، لذلك هي خارج الإجمالي أعلاه -->
+      <div class="stat-pill" id="stat-regular-pill" hidden><div class="k" id="stat-regular-k">مصروفات ثابتة شهرية (خارج الإجمالي)</div><div class="v steel" id="stat-regular">—</div></div>
+    </div>
+  </header>
+
+  <!-- الملخص التنفيذي: كل أرقامه وجُمله تُحسب وقت التشغيل من ROWS/DATA/REGULAR،
+       فإعادة بناء الصفحة من تصدير جديد تُحدّثه تلقائيًا — لا رقم مكتوب يدويًا. -->
+  <section class="panel exec" id="exec-summary">
+    <div class="panel-head">
+      <h2>ملخص تنفيذي</h2>
+      <div class="hint" id="exec-period">—</div>
+    </div>
+    <div class="exec-grid" id="exec-grid"></div>
+    <div class="exec-findings">
+      <h3>أبرز المؤشرات</h3>
+      <ul id="exec-findings"></ul>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>إجمالي المصروفات حسب الشهر</h2>
+      <div class="hint">العمود الداكن أعلى شهر · الخط المتقطع متوسط الفترة · مرّر المؤشر على أي عمود لتفاصيله</div>
+    </div>
+    <div id="month-bar-holder"><svg id="month-bar-svg" viewBox="0 0 1000 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="chart-note" id="month-bar-note"></div>
+  </section>
+
+  <section class="panel" style="margin-top: 22px;">
+    <div class="panel-head">
+      <h2>التغيّر الشهري في المصروفات</h2>
+      <div class="hint">الفرق عن الشهر السابق · عمود لأعلى = ارتفاع، لأسفل = انخفاض · الشهر المظلّل (*) بياناته غير مكتملة</div>
+    </div>
+    <div id="month-delta-holder"><svg id="month-delta-svg" viewBox="0 0 1000 340" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="chart-note" id="month-delta-note"></div>
+  </section>
+
+  <!-- نصيب العمالة شهريًا: العمالة أكبر بند في الإنفاق، واتجاه نصيبها من كل
+       شهر أهم من قيمتها المطلقة — ترتفع النسبة حين يهدأ الإنفاق على غيرها. -->
+  <section class="panel" style="margin-top: 22px;" id="labor-section">
+    <div class="panel-head">
+      <h2>نصيب العمالة من إنفاق كل شهر</h2>
+      <div class="hint">أجور عمال، أجور موظفين، مصروف عمال، قبض العيد — كنسبة من مصروفات الشهر نفسه</div>
+    </div>
+    <div id="labor-holder"><svg id="labor-svg" viewBox="0 0 1000 340" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="chart-note" id="labor-note"></div>
+  </section>
+
+  <section class="panel" style="margin-top: 22px;">
+    <div class="panel-head">
+      <h2>المصروفات مقابل حركة البنك <span class="head-period" id="bank-period"></span></h2>
+      <div class="hint">حركة الشهر فقط — ثلاث قيم على مقياس واحد · مرّر المؤشر على أي شهر لمقارنتها · الرصيد في الرسم التالي</div>
+    </div>
+    <!-- أُخرج الرصيد من هنا: هو مقدار متراكم لا حركة شهرية، فوضعه على المقياس
+         نفسه يسحق الخطوط الثلاثة (أو يستدعي محورًا ثانيًا يُضلّل القارئ).
+         مكانه الطبيعي قسم "منحنى الرصيد البنكي" أدناه. -->
+    <div class="series-legend">
+      <span class="series-key"><span class="series-swatch" style="background:var(--series-exp)"></span>المصروفات (الكشوف)</span>
+      <span class="series-key"><span class="series-swatch" style="background:var(--series-debit)"></span>مسحوبات البنك (مدين)</span>
+      <span class="series-key"><span class="series-swatch" style="background:var(--series-credit)"></span>إيداعات البنك (دائن)</span>
+    </div>
+    <div id="bank-line-holder"><svg id="bank-line-svg" viewBox="0 0 1000 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="chart-note">
+      كشوف البنك المتاحة تبدأ من <b>8 فبراير</b> وتنتهي في <b>31 أغسطس 2026</b> — لذلك يظهر يناير وسبتمبر بدون خطوط للبنك (لا توجد بيانات، وليس صفرًا)،
+      ورقم فبراير للبنك جزئي (يبدأ من 8 فبراير).
+    </div>
+  </section>
+
+  <!-- مدى الرصيد شهريًا: رصيد الإقفال وحده يخفي ما جرى داخل الشهر — شهر أقفل
+       على 2.2 مليون كان قد نزل إلى 106 آلاف. العمود يُظهر المدى كاملًا. -->
+  <section class="panel" id="balance-range-section" style="margin-top: 22px; display:none">
+    <div class="panel-head">
+      <h2>مدى الرصيد البنكي شهريًا</h2>
+      <div class="hint">كل عمود من أدنى رصيد في الشهر إلى أعلاه · النقطة = رصيد آخر الشهر · مرّر المؤشر للتفاصيل</div>
+    </div>
+    <div id="balance-range-holder"><svg id="balance-range-svg" viewBox="0 0 1000 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="chart-note" id="balance-range-note"></div>
+  </section>
+
+  <!-- منحنى الرصيد: نقطة لكل معاملة بنكية، لا تجميع شهري -->
+  <section class="panel" id="balance-section" style="margin-top: 22px; display:none">
+    <div class="panel-head">
+      <h2>منحنى الرصيد البنكي عبر الزمن</h2>
+      <div class="hint">نقطة لكل معاملة — الرصيد بعدها مباشرةً · مرّر المؤشر لتفاصيل أي نقطة</div>
+    </div>
+    <div id="balance-holder"><svg id="balance-svg" viewBox="0 0 1000 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="chart-note" id="balance-note"></div>
+  </section>
+
+  <section class="panel" style="margin-top: 22px;">
+    <div class="panel-head">
+      <h2>المصروفات شهرًا بشهر</h2>
+      <div class="hint" id="months-scope">—</div>
+    </div>
+    <div class="chart-note" style="margin-top:0">
+      «المبلغ المتراكم» = مجموع المصروفات منذ أول كشف حتى نهاية ذلك الشهر.
+      والنسبة محسوبة على إجمالي <b>الفترة المعروضة</b> لا على سنة كاملة — فالكشوف تنتهي في سبتمبر،
+      ولذلك يظهر سبتمبر بنسبة صغيرة (كشف واحد)، وستتغيّر النسب كلما أُضيفت كشوف جديدة.
+    </div>
+  </section>
+
+  <section class="table-panel">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:26px"></th>
+            <th>الشهر</th>
+            <th class="num-col">المبلغ الشهري</th>
+            <th class="num-col">المبلغ المتراكم</th>
+            <th style="width:160px">نسبة من إجمالي الفترة</th>
+          </tr>
+        </thead>
+        <tbody id="month-tbl-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top: 22px;">
+    <div class="panel-head">
+      <h2>خريطة المصروفات حسب المصدر</h2>
+      <div class="hint">مساحة كل مستطيل = حجم المبلغ · مرّر المؤشر لتفاصيل كل مصدر</div>
+    </div>
+    <div id="tmap-holder"><svg id="tmap-svg" viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="chart-note" id="tmap-note"></div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-swatch ramp-steel"></span> مصدر واحد بعينه <span style="opacity:.7">— كلما غمُق الأزرق زاد المبلغ</span></div>
+      <div class="legend-item"><span class="legend-swatch ramp-amber"></span> مصادر مركّبة (بند مسجَّل على أكثر من مصدر معًا)</div>
+      <div class="legend-item"><span class="legend-swatch solid-other"></span> "مصروفات مجمعة" <span style="opacity:.7">— أصغر <b id="legend-n-other">—</b> مصدرًا مجتمعة في مستطيل واحد</span></div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top: 22px;">
+    <div class="panel-head">
+      <h2>المصروفات حسب المصدر — المبالغ</h2>
+      <div class="hint" id="amounts-scope">—</div>
+    </div>
+    <div class="chart-note" style="margin-top:0">
+      المصدر هنا كما كُتب في الكشف بالضبط: البند المسجَّل على أكثر من مصدر يظهر بتركيبته كاملة
+      (مثل «استهلاكات، محروقات») ولا يُقسَّم. لعدد مرات تكرار كل مصدر على حدة، انظر الجدول التالي.
+    </div>
+  </section>
+
+  <section class="table-panel">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px">#</th>
+            <th>المصدر</th>
+            <th>النوع</th>
+            <th class="num-col">المبلغ</th>
+            <th style="width:160px">الحصة من الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- نفس البنود، لكن بعد تفكيك كل بند مركّب إلى مصادره المفردة -->
+  <!-- أُزيل قسم "أكثر المصادر تكرارًا": عدد مرات ورود المصدر سؤال دفتري لا
+       إداري — ما يَعني الإدارة هو المبلغ، وهو في الجدول والخريطة أعلاه. -->
+
+  <section class="table-panel">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px">#</th>
+            <th>المصدر</th>
+            <th class="num-col">منفردًا</th>
+            <th class="num-col">ضمن بند مركّب</th>
+            <th class="num-col">إجمالي التكرارات</th>
+            <th style="width:160px">نصيبه من مرات التكرار</th>
+          </tr>
+        </thead>
+        <tbody id="atomic-tbl-body"></tbody>
+      </table>
+    </div>
+    <div class="chart-note" id="atomic-note"></div>
+  </section>
+
+  <!-- أُزيل جدول "البيانات الأصلية، بندًا بندًا": مئات الأسطر لا تُقرأ في تقرير
+       إداري وتضاعف عدد صفحات الـ PDF. البيانات نفسها تبقى في ROWS ويمكن تصديرها
+       من النظام عند الحاجة، وكل الأقسام أعلاه محسوبة منها. -->
+
+  <footer class="note">
+    محسوبة مباشرة من ملف تصدير المصروفات (٢٢٤ بندًا نشطًا). التجميع بحسب مجموعة المصادر بالضبط لكل بند — لا تُنسب المبالغ المركّبة جزئيًا لكل مصدر على حدة.
+    تُطوى المصادر الأقل تكرارًا تلقائيًا في "مصروفات مجمعة" بعد تغطية ٩٠٪ من الإجمالي، بنفس القاعدة المستخدمة في تقرير النظام.
+  </footer>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+const DATA = {"grand_total": 3054203.81, "slices": [{"label": "قبض العمال", "value": 1108370.0, "count": 32, "compound": false}, {"label": "ضرائب", "value": 254435.66, "count": 8, "compound": false}, {"label": "قبض موظفين", "value": 217281.0, "count": 8, "compound": false}, {"label": "جلبة وسلك", "value": 186270.33, "count": 10, "compound": false}, {"label": "شيكات مباشرة", "value": 175823.5, "count": 1, "compound": false}, {"label": "مصروف العمال", "value": 172960.0, "count": 27, "compound": false}, {"label": "استهلاكات، محروقات", "value": 140300.0, "count": 22, "compound": true}, {"label": "قبض العيد", "value": 93403.0, "count": 4, "compound": false}, {"label": "إيجار(الفرع الأول ، الفرع الثاني)", "value": 56212.0, "count": 10, "compound": true}, {"label": "تكاليف الفرع الثاني", "value": 47150.0, "count": 14, "compound": false}, {"label": "نحاس", "value": 40729.32, "count": 4, "compound": false}, {"label": "تأمينات، تكاليف الفرع الثاني", "value": 39318.5, "count": 3, "compound": true}, {"label": "تأمينات، تكاليف الفرع الثاني، مصروف العمال، نحاس", "value": 39100.0, "count": 1, "compound": true}, {"label": "تأمينات", "value": 32246.0, "count": 5, "compound": false}, {"label": "تأمينات، تكاليف الفرع الثاني، تكاليف مكبس، خامات، مصروف العمال", "value": 29900.0, "count": 1, "compound": true}, {"label": "ضرائب، رسوم قانونية", "value": 26450.0, "count": 2, "compound": true}, {"label": "رسوم قانونية", "value": 25990.0, "count": 4, "compound": false}, {"label": "مصنعيات، نحاس", "value": 23000.0, "count": 1, "compound": true}, {"label": "تأمينات، خامات", "value": 23000.0, "count": 1, "compound": true}, {"label": "تأمينات، محروقات", "value": 23000.0, "count": 1, "compound": true}, {"label": "مصروفات مجمعة", "value": 299264.5, "count": 65, "compound": false, "other": true, "n_sources": 32}], "n_rows": 224, "n_sheets": 35, "date_from": "2026-01-04", "date_to": "2026-09-06"};
+
+// One point per bank transaction: {d: 'YYYY-MM-DD', b: balance-after}, in the
+// order the balance actually moved (same-day rows re-chained, see
+// backend/utility/bank_series.py). Empty here means no statements were loaded.
+const BALANCE = [{"d": "2026-02-08", "b": 288452.36}, {"d": "2026-02-10", "b": 271202.36}, {"d": "2026-02-11", "b": 473864.89}, {"d": "2026-02-12", "b": 243864.89}, {"d": "2026-02-12", "b": 213039.14}, {"d": "2026-02-12", "b": 214348.83}, {"d": "2026-02-15", "b": 598119.02}, {"d": "2026-02-15", "b": 541763.27}, {"d": "2026-02-19", "b": 550493.61}, {"d": "2026-02-22", "b": 492993.61}, {"d": "2026-02-22", "b": 473443.61}, {"d": "2026-03-01", "b": 473328.61}, {"d": "2026-03-01", "b": 415828.61}, {"d": "2026-03-01", "b": 365228.61}, {"d": "2026-03-02", "b": 384799.27}, {"d": "2026-03-02", "b": 629230.91}, {"d": "2026-03-02", "b": 862517.15}, {"d": "2026-03-03", "b": 485259.65}, {"d": "2026-03-03", "b": 468009.65}, {"d": "2026-03-05", "b": 192009.65}, {"d": "2026-03-08", "b": 151299.65}, {"d": "2026-03-08", "b": 93799.65}, {"d": "2026-03-09", "b": 101535.47}, {"d": "2026-03-09", "b": 107560.55}, {"d": "2026-03-09", "b": 112272.56}, {"d": "2026-03-11", "b": 302553.05}, {"d": "2026-03-15", "b": 581140.55}, {"d": "2026-03-15", "b": 530534.8}, {"d": "2026-03-17", "b": 473034.8}, {"d": "2026-03-18", "b": 485286.9}, {"d": "2026-03-18", "b": 474471.15}, {"d": "2026-03-18", "b": 481119.8}, {"d": "2026-03-24", "b": 205119.8}, {"d": "2026-03-25", "b": 287997.95}, {"d": "2026-03-29", "b": 230457.7}, {"d": "2026-04-05", "b": 172819.7}, {"d": "2026-04-05", "b": 115319.7}, {"d": "2026-04-06", "b": 290811.4}, {"d": "2026-04-06", "b": 251199.65}, {"d": "2026-04-06", "b": 283152.12}, {"d": "2026-04-07", "b": 265902.12}, {"d": "2026-04-08", "b": 437716.08}, {"d": "2026-04-09", "b": 380216.08}, {"d": "2026-04-09", "b": 391716.08}, {"d": "2026-04-15", "b": 104676.08}, {"d": "2026-04-19", "b": 47168.03}, {"d": "2026-04-19", "b": 58668.03}, {"d": "2026-04-19", "b": 59759.44}, {"d": "2026-04-21", "b": 201775.24}, {"d": "2026-04-26", "b": 144229.24}, {"d": "2026-04-30", "b": 86631.49}, {"d": "2026-04-30", "b": 40424.49}, {"d": "2026-04-30", "b": 41734.18}, {"d": "2026-05-05", "b": 24484.18}, {"d": "2026-05-06", "b": 80808.45}, {"d": "2026-05-10", "b": 325893.57}, {"d": "2026-05-10", "b": 268387.82}, {"d": "2026-05-11", "b": 215947.82}, {"d": "2026-05-12", "b": 238901.82}, {"d": "2026-05-13", "b": 246657.19}, {"d": "2026-05-17", "b": 189157.19}, {"d": "2026-05-17", "b": 142697.19}, {"d": "2026-05-17", "b": 85197.19}, {"d": "2026-05-18", "b": 108197.19}, {"d": "2026-05-19", "b": 236763.73}, {"d": "2026-05-20", "b": 315701.34}, {"d": "2026-05-20", "b": 434112.87}, {"d": "2026-05-21", "b": 401391.69}, {"d": "2026-05-24", "b": 618800.15}, {"d": "2026-05-24", "b": 561294.4}, {"d": "2026-05-24", "b": 512074.4}, {"d": "2026-06-02", "b": 454482.4}, {"d": "2026-06-03", "b": 218375.9}, {"d": "2026-06-07", "b": 160875.9}, {"d": "2026-06-07", "b": 103375.9}, {"d": "2026-06-09", "b": 86079.9}, {"d": "2026-06-10", "b": 106779.9}, {"d": "2026-06-14", "b": 320042.63}, {"d": "2026-06-14", "b": 262542.63}, {"d": "2026-06-17", "b": 440148.4}, {"d": "2026-06-21", "b": 382648.4}, {"d": "2026-06-22", "b": 364841.8}, {"d": "2026-06-24", "b": 506313.8}, {"d": "2026-06-24", "b": 517808.05}, {"d": "2026-06-28", "b": 460227.55}, {"d": "2026-06-28", "b": 402727.55}, {"d": "2026-06-28", "b": 399404.05}, {"d": "2026-06-28", "b": 341904.05}, {"d": "2026-06-29", "b": 181306.55}, {"d": "2026-06-30", "b": 422749.12}, {"d": "2026-06-30", "b": 428558.46}, {"d": "2026-07-05", "b": 313420.46}, {"d": "2026-07-05", "b": 255920.46}, {"d": "2026-07-06", "b": 140920.46}, {"d": "2026-07-12", "b": 120220.46}, {"d": "2026-07-12", "b": 62720.46}, {"d": "2026-07-12", "b": 45470.46}, {"d": "2026-07-13", "b": 344122.41}, {"d": "2026-07-14", "b": 356486.48}, {"d": "2026-07-16", "b": 544542.85}, {"d": "2026-07-19", "b": 487042.85}, {"d": "2026-07-19", "b": 475542.85}, {"d": "2026-07-26", "b": 316313.85}, {"d": "2026-07-26", "b": 258813.85}, {"d": "2026-07-26", "b": 205913.85}, {"d": "2026-07-29", "b": 90879.35}, {"d": "2026-08-02", "b": 285322.1}, {"d": "2026-08-02", "b": 427005.39}, {"d": "2026-08-02", "b": 646704.94}, {"d": "2026-08-02", "b": 589659.19}, {"d": "2026-08-02", "b": 572409.19}, {"d": "2026-08-03", "b": 457363.19}, {"d": "2026-08-03", "b": 410875.59}, {"d": "2026-08-03", "b": 353375.59}, {"d": "2026-08-04", "b": 358992.19}, {"d": "2026-08-04", "b": 366798.62}, {"d": "2026-08-05", "b": 568378.44}, {"d": "2026-08-09", "b": 338378.44}, {"d": "2026-08-09", "b": 280878.44}, {"d": "2026-08-09", "b": 233038.44}, {"d": "2026-08-10", "b": 453358.59}, {"d": "2026-08-11", "b": 395852.84}, {"d": "2026-08-12", "b": 338352.84}, {"d": "2026-08-13", "b": 280852.84}, {"d": "2026-08-16", "b": 225652.84}, {"d": "2026-08-16", "b": 168152.84}, {"d": "2026-08-17", "b": 110606.84}, {"d": "2026-08-17", "b": 53106.84}, {"d": "2026-08-23", "b": 253451.58}, {"d": "2026-08-23", "b": 207445.83}, {"d": "2026-08-24", "b": 200545.83}, {"d": "2026-08-30", "b": 143011.33}, {"d": "2026-08-30", "b": 85511.33}, {"d": "2026-08-31", "b": 85453.83}];
+
+// What the curve leaves out: {count, plotted, skipped, skipped_categories}.
+// Filled by build_expense_report.py --bank-series.
+const BALANCE_META = {"count": 208, "plotted": 134, "skipped": 74, "skipped_categories": ["رسوم بنكية"]};
+
+// Fixed monthly expenses in force over the reported period, one row per month:
+// {month, amount, name, name_ar}. Rebuilt from backend/utility/regular_expenses.json
+// by build_expense_report.py; empty here means none are configured.
+const REGULAR = [{"month": "2026-01", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}, {"month": "2026-02", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}, {"month": "2026-03", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}, {"month": "2026-04", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}, {"month": "2026-05", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}, {"month": "2026-06", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}, {"month": "2026-07", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}, {"month": "2026-08", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}, {"month": "2026-09", "amount": 17250.0, "name": "Owner's drawings", "name_ar": "مسحوبات المالك"}];
+
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const pct = n => (n * 100).toFixed(1).replace(/\.0$/, '');
+
+function hexLerp(a, b, t) {
+  const pa = a.match(/\w\w/g).map(h => parseInt(h, 16));
+  const pb = b.match(/\w\w/g).map(h => parseInt(h, 16));
+  const p = pa.map((c, i) => Math.round(c + (pb[i] - c) * t));
+  return '#' + p.map(c => c.toString(16).padStart(2, '0')).join('');
+}
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// ── Squarified treemap layout (Bruls/Huizing/van Wijk) ──────────────────────
+function worstRatio(row, side) {
+  const sum = row.reduce((s, d) => s + d.area, 0);
+  const maxA = Math.max(...row.map(d => d.area));
+  const minA = Math.min(...row.map(d => d.area));
+  return Math.max((side * side * maxA) / (sum * sum), (sum * sum) / (side * side * minA));
+}
+function layoutRow(items, x, y, w, h, out) {
+  if (!items.length) return;
+  let row = [];
+  let i = 0;
+  const shortSide = Math.min(w, h);
+  while (i < items.length) {
+    const testRow = row.concat(items[i]);
+    if (row.length === 0 || worstRatio(testRow, shortSide) <= worstRatio(row, shortSide)) {
+      row = testRow; i++;
+    } else break;
+  }
+  const rowArea = row.reduce((s, d) => s + d.area, 0);
+  if (w >= h) {
+    const colW = rowArea / h;
+    let cy = y;
+    row.forEach(d => {
+      const itH = d.area / colW;
+      out.push({ ...d, x, y: cy, w: colW, h: itH });
+      cy += itH;
+    });
+    layoutRow(items.slice(row.length), x + colW, y, w - colW, h, out);
+  } else {
+    const rowH = rowArea / w;
+    let cx = x;
+    row.forEach(d => {
+      const itW = d.area / rowH;
+      out.push({ ...d, x: cx, y, w: itW, h: rowH });
+      cx += itW;
+    });
+    layoutRow(items.slice(row.length), x, y + rowH, w, h - rowH, out);
+  }
+}
+function squarify(items, x, y, w, h) {
+  const total = items.reduce((s, d) => s + d.value, 0);
+  const area = w * h;
+  const scaled = items.map(d => ({ ...d, area: (d.value / total) * area }));
+  const out = [];
+  layoutRow(scaled, x, y, w, h, out);
+  return out;
+}
+
+// ── Color assignment: sequential ramps by rank within each group ───────────
+function assignColors(slices) {
+  const singles = slices.filter(s => !s.compound && !s.other);
+  const compounds = slices.filter(s => s.compound);
+  singles.forEach((s, i) => {
+    const t = singles.length > 1 ? i / (singles.length - 1) : 0;
+    s.fill = hexLerp(cssVar('--steel-900'), cssVar('--steel-300'), t);
+    s.group = 'single';
+  });
+  compounds.forEach((s, i) => {
+    const t = compounds.length > 1 ? i / (compounds.length - 1) : 0;
+    s.fill = hexLerp(cssVar('--amber-900'), cssVar('--amber-300'), t);
+    s.group = 'compound';
+  });
+  slices.filter(s => s.other).forEach(s => { s.fill = cssVar('--other'); s.group = 'other'; });
+  return slices;
+}
+
+const NSVG = 'http://www.w3.org/2000/svg';
+function el(tag, attrs) {
+  const e = document.createElementNS(NSVG, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+const FIT_SIZES = [13, 12, 11, 10, 9];
+function bestFontSize(text, family, weight, availW) {
+  for (const size of FIT_SIZES) {
+    if (textWidth(text, `${weight} ${size}px ${family}`) <= availW) return size;
+  }
+  return null;
+}
+function compactNum(n) {
+  const r = Math.round(n);
+  if (r >= 1000000) return (r % 1000000 === 0 ? r / 1000000 : (r / 1000000).toFixed(1)) + 'M';
+  if (r >= 1000) return Math.round(r / 1000) + 'K';
+  return String(r);
+}
+
+let measureCanvas = null;
+function textWidth(text, font) {
+  if (!measureCanvas) measureCanvas = document.createElement('canvas');
+  const ctx = measureCanvas.getContext('2d');
+
+	if (!ctx) {
+	  return text.length * 8;
+	}
+
+	ctx.font = font;
+return ctx.measureText(text).width;
+}
+
+const tooltip = document.getElementById('tooltip');
+function showTooltipHTML(evt, html) {
+  tooltip.innerHTML = html;
+  tooltip.classList.add('show');
+  moveTooltip(evt);
+}
+function showTreemapTooltip(evt, d) {
+  const rows = [
+    `<div class="tt-row"><span>المبلغ</span><span class="num">${fmt(d.value)}</span></div>`,
+    `<div class="tt-row"><span>عدد البنود</span><span class="num">${d.count}</span></div>`,
+    `<div class="tt-row"><span>الحصة من الإجمالي</span><span class="num">${pct(d.value / DATA.grand_total)}%</span></div>`,
+  ];
+  let note = '';
+  if (d.other) note = `<div class="tt-note">يضم ${d.n_sources} مصدرًا إضافيًا أقل تكرارًا، طُويت هنا بعد تغطية ٩٠٪ من الإجمالي</div>`;
+  else if (d.compound) note = `<div class="tt-note">بند سُجّل على أكثر من مصدر معًا في نفس السطر</div>`;
+  showTooltipHTML(evt, `<div class="tt-title">${d.label}</div>${rows.join('')}${note}`);
+}
+function moveTooltip(evt) {
+  const pad = 16;
+  let x = evt.clientX + pad, y = evt.clientY + pad;
+  const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  if (x + tw > window.innerWidth - 8) x = evt.clientX - tw - pad;
+  if (y + th > window.innerHeight - 8) y = evt.clientY - th - pad;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
+}
+function hideTooltip() { tooltip.classList.remove('show'); }
+
+function render() {
+  const svg = document.getElementById('tmap-svg');
+  svg.innerHTML = '';
+  const VW = 1000, VH = 520, GAP = 2;
+  const slices = assignColors(DATA.slices.map(s => ({ ...s })));
+  const laid = squarify(slices, 0, 0, VW, VH);
+
+  laid.forEach(d => {
+    const gx = d.x + GAP / 2, gy = d.y + GAP / 2;
+    const gw = Math.max(0, d.w - GAP), gh = Math.max(0, d.h - GAP);
+    const g = el('g', {});
+    const rect = el('rect', {
+      x: gx, y: gy, width: gw, height: gh, fill: d.fill, rx: 3,
+      class: 'tile-rect', tabindex: '0'
+    });
+    rect.addEventListener('mousemove', e => { showTreemapTooltip(e, d); });
+    rect.addEventListener('mouseenter', e => { showTreemapTooltip(e, d); });
+    rect.addEventListener('mouseleave', hideTooltip);
+    rect.addEventListener('focus', e => {
+      const box = rect.getBoundingClientRect();
+      showTreemapTooltip({ clientX: box.left + box.width / 2, clientY: box.top }, d);
+    });
+    rect.addEventListener('blur', hideTooltip);
+    g.appendChild(rect);
+
+    const padIn = 5;
+    const availW = gw - padIn * 2;
+    const textColor = pickTextColor(d.fill);
+
+    // Try progressively smaller sizes before giving up — a tile too narrow
+    // for the label at 13px may still fit it (or at least the amount) at
+    // 10-9px, and a bare tile with no text at all is worse than a small one.
+    const labelSize = gh > 16 ? bestFontSize(d.label, 'Cairo', 600, availW) : null;
+    let valueStr = fmt(d.value);
+    let valueSize = gh > 13 ? bestFontSize(valueStr, '"JetBrains Mono"', 500, availW) : null;
+    if (!valueSize && gh > 13) {
+      valueStr = compactNum(d.value);
+      valueSize = bestFontSize(valueStr, '"JetBrains Mono"', 500, availW);
+    }
+
+    const showBoth = labelSize && valueSize && gh > labelSize + valueSize + 12;
+    const cx = gx + gw / 2, cy = gy + gh / 2;
+
+    if (showBoth) {
+      const t1 = el('text', {
+        x: cx, y: cy - valueSize / 2 - 2, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        class: 'tile-label', fill: textColor, style: `font-size:${labelSize}px`
+      });
+      t1.textContent = d.label;
+      g.appendChild(t1);
+      const t2 = el('text', {
+        x: cx, y: cy + labelSize / 2 + 4, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        class: 'tile-value', fill: textColor, style: `font-size:${valueSize}px`, opacity: '0.85'
+      });
+      t2.textContent = valueStr;
+      g.appendChild(t2);
+    } else if (labelSize) {
+      const t1 = el('text', {
+        x: cx, y: cy, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        class: 'tile-label', fill: textColor, style: `font-size:${labelSize}px`
+      });
+      t1.textContent = d.label;
+      g.appendChild(t1);
+    } else if (valueSize) {
+      const t2 = el('text', {
+        x: cx, y: cy, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        class: 'tile-value', fill: textColor, style: `font-size:${valueSize}px`, opacity: '0.9'
+      });
+      t2.textContent = valueStr;
+      g.appendChild(t2);
+    }
+    svg.appendChild(g);
+  });
+
+  // header stats
+  document.getElementById('hdr-rows').textContent = DATA.n_rows.toLocaleString('en-US');
+  document.getElementById('hdr-sheets').textContent = DATA.n_sheets.toLocaleString('en-US');
+  document.getElementById('hdr-from').textContent = arDate(DATA.date_from);
+  document.getElementById('hdr-to').textContent = arDate(DATA.date_to);
+  document.getElementById('stat-total').textContent = fmt(DATA.grand_total);
+  const top = slices.find(s => !s.other);
+  document.getElementById('stat-top').textContent = top.label + ' — ' + fmt(top.value);
+  const LABOR_LABELS = ['قبض العمال', 'قبض موظفين', 'مصروف العمال', 'قبض العيد'];
+  const laborTotal = slices.filter(s => LABOR_LABELS.includes(s.label)).reduce((sum, s) => sum + s.value, 0);
+  document.getElementById('stat-labor').textContent = fmt(laborTotal);
+  const otherSlice = slices.find(s => s.other);
+  document.getElementById('legend-n-other').textContent = otherSlice.n_sources;
+
+  renderRegularStat();
+  const amountsScope = document.getElementById('amounts-scope');
+  if (amountsScope) {
+    amountsScope.innerHTML = `${DATA.n_rows} بندًا في ${DATA.n_sheets} كشف مصروفات · ` +
+      `من ${arDate(DATA.date_from)} إلى ${arDate(DATA.date_to)} · إجمالي ${fmt(DATA.grand_total)}`;
+  }
+  renderTable(slices);
+}
+
+// Fixed monthly expenses (REGULAR) are standing bank withdrawals that never
+// appear on the weekly sheets, so they are deliberately NOT folded into
+// DATA.grand_total — adding them would make this report's total stop matching
+// the app's own expenses page and every earlier version of this page. They are
+// shown as their own figure, with the per-month rate(s) that produced it.
+// The pill stays hidden when there is nothing to show.
+function renderRegularStat() {
+  const pill = document.getElementById('stat-regular-pill');
+  if (!pill) return;
+  const rows = (typeof REGULAR !== 'undefined' && Array.isArray(REGULAR)) ? REGULAR : [];
+  if (!rows.length) { pill.hidden = true; return; }
+
+  const total = rows.reduce((sum, r) => sum + r.amount, 0);
+  document.getElementById('stat-regular').textContent = fmt(total);
+
+  const rates = [...new Set(rows.map(r => r.amount))].sort((a, b) => a - b);
+  const name = rows[0].name_ar || rows[0].name || 'مصروفات ثابتة';
+  const ratesText = rates.map(a => fmt(a)).join(' ثم ') + ' شهريًا';
+  document.getElementById('stat-regular-k').textContent =
+    `${name} — ${ratesText} · ${rows.length} شهر (خارج الإجمالي)`;
+  pill.hidden = false;
+}
+
+// ── Most-repeated sources, as stacked bars ──────────────────────────────────
+// Counts only — how often a source is written down, never how much it cost.
+// Each bar splits into the times the source stood alone on a line and the
+// times it shared one, because a source that is never written alone (محروقات)
+// is a different kind of fact from one that always is (قبض العمال).
+// أُزيلت renderRepeatChart() مع القسم الذي كانت ترسمه.
+
+// ── Single sources, compound lines broken apart ─────────────────────────────
+// A line like "تأمينات، تكاليف الفرع الثاني، خامات" is one 30,000 payment covering
+// three things, and the paper never says how it splits. So each source gets
+// two figures and the reader picks: the FULL amount of every line naming it
+// (an upper bound — those columns deliberately sum to more than total spend),
+// and an equal split of each line across its sources (a lower-bound estimate
+// that does sum to the grand total, which is why the percentage uses it).
+function splitSources(text) {
+  // Split on "،" but not inside brackets — "إيجار(الفرع الأول ، الفرع الثاني)" is one source.
+  const out = [];
+  let depth = 0, cur = '';
+  for (const ch of String(text || '')) {
+    if (ch === '(' || ch === '[') depth++;
+    else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+    if (ch === '،' && depth === 0) { out.push(cur); cur = ''; } else cur += ch;
+  }
+  out.push(cur);
+  return out.map(s => s.trim()).filter(Boolean);
+}
+
+function renderAtomicTable() {
+  const tbody = document.getElementById('atomic-tbl-body');
+  if (!tbody) return;
+  const acc = new Map();
+  let compoundLines = 0, compoundTotal = 0;
+  ROWS.forEach(r => {
+    const parts = splitSources(r.source);
+    if (!parts.length) return;
+    if (parts.length > 1) { compoundLines++; compoundTotal += r.amount || 0; }
+    const share = (r.amount || 0) / parts.length;
+    parts.forEach(name => {
+      const a = acc.get(name) || { name, count: 0, full: 0, split: 0, soloCount: 0 };
+      a.count++;
+      a.full += r.amount || 0;
+      a.split += share;
+      if (parts.length === 1) a.soloCount++;
+      acc.set(name, a);
+    });
+  });
+
+  // Sorted by how often a source appears, not by money — this table answers
+  // "what keeps coming up", and every number in it is a plain count.
+  const list = [...acc.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ar'));
+  const totalMentions = list.reduce((s, a) => s + a.count, 0) || 1;
+  tbody.innerHTML = '';
+  list.forEach((a, i) => {
+    const share = a.count / totalMentions;
+    const mixed = a.count - a.soloCount;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="rank">${i + 1}</td>
+      <td class="src-name">${a.name}</td>
+      <td class="num-col num">${a.soloCount || '—'}</td>
+      <td class="num-col num">${mixed || '—'}</td>
+      <td class="num-col num"><b>${a.count}</b></td>
+      <td>
+        <div class="share-bar-wrap">
+          <div class="share-bar-track"><div class="share-bar-fill" style="width:${(share * 100).toFixed(1)}%; background:var(--steel-500)"></div></div>
+          <span class="num" style="font-size:12px;color:var(--ink-muted);min-width:38px">${pct(share)}%</span>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  const note = document.getElementById('atomic-note');
+  if (note) {
+    note.innerHTML =
+      `${list.length} مصدرًا مفردًا، ذُكرت ${totalMentions} مرة في ${ROWS.length} بندًا. ` +
+      `منها <b>${compoundLines}</b> بندًا مركّبًا ذُكر فيه أكثر من مصدر، ولذلك مجموع التكرارات أكبر من عدد البنود. ` +
+      `«نصيبه من مرات التكرار» = حصة المصدر من مجموع التكرارات، وليس من المبالغ.`;
+  }
+}
+
+// ── نصيب العمالة من كل شهر ─────────────────────────────────────────────────
+// نسبة لا مبلغ: المبلغ المطلق يتبع حجم إنفاق الشهر، أما النسبة فتُظهر هل تغيّر
+// تركيب الإنفاق فعلًا. المقياس 0–100٪ ثابت حتى لا يضخّم التذبذبَ قصُّ المحور.
+function laborShareByMonth() {
+  const totals = {}, labor = {};
+  ROWS.forEach(r => {
+    totals[r.month] = (totals[r.month] || 0) + r.amount;
+    if (LABOR_LABELS_EXEC.includes(r.source)) labor[r.month] = (labor[r.month] || 0) + r.amount;
+  });
+  return MONTHS.map(m => ({
+    month: m, total: totals[m] || 0, labor: labor[m] || 0,
+    share: totals[m] ? (labor[m] || 0) / totals[m] : 0,
+  }));
+}
+
+function renderLaborChart() {
+  const svg = document.getElementById('labor-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+  const data = laborShareByMonth();
+  const partial = partialMonthKey(computeMonthlyTotals());
+
+  const VW = 1000, VH = 340;
+  const mTop = 26, mBottom = 38, mLeft = 12, mRight = 58;
+  const plotW = VW - mLeft - mRight, plotH = VH - mTop - mBottom;
+  const n = data.length;
+  const xAt = i => mLeft + (n === 1 ? plotW / 2 : (i / (n - 1)) * plotW);
+  const yAt = v => mTop + plotH - v * plotH;          // المحور ثابت 0–100٪
+
+  for (let i = 0; i <= 4; i++) {
+    const v = i / 4, y = yAt(v);
+    svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight, y1: y, y2: y,
+      stroke: cssVar('--border-soft'), 'stroke-width': 1 }));
+    const lab = el('text', { x: VW - mRight + 6, y: y + 4, 'text-anchor': 'start',
+      style: 'font-size:10px', fill: cssVar('--ink-faint') });
+    lab.textContent = ltr(`${Math.round(v * 100)}٪`);
+    svg.appendChild(lab);
+  }
+
+  // متوسط الفترة كخط مرجعي
+  const avgShare = data.reduce((sum, d) => sum + d.labor, 0) / data.reduce((sum, d) => sum + d.total, 0);
+  const avgY = yAt(avgShare);
+  svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight, y1: avgY, y2: avgY,
+    stroke: cssVar('--ink-muted'), 'stroke-width': 1.5, 'stroke-dasharray': '6 5' }));
+  // عند الطرف الأيسر: الطرف الأيمن تشغله نقطة الشهر الأخير وملصقها
+  const avgLab = el('text', { x: mLeft, y: avgY - 7, 'text-anchor': 'end',
+    style: 'font-size:10.5px;font-weight:600;paint-order:stroke;stroke:' + cssVar('--surface') + ';stroke-width:3px;stroke-linejoin:round',
+    fill: cssVar('--ink-muted') });
+  avgLab.textContent = `متوسط الفترة ${pct(avgShare)}٪`;
+  svg.appendChild(avgLab);
+
+  const pts = data.map((d, i) => [xAt(i), yAt(d.share)]);
+  svg.appendChild(el('path', {
+    d: 'M ' + pts.map(p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' L '),
+    fill: 'none', stroke: cssVar('--chart-bar'), 'stroke-width': 2.5,
+    'stroke-linejoin': 'round', 'stroke-linecap': 'round'
+  }));
+
+  data.forEach((d, i) => {
+    const [x, y] = pts[i];
+    const isPartial = d.month === partial;
+    const dot = el('circle', { cx: x, cy: y, r: isPartial ? 4 : 5,
+      fill: isPartial ? cssVar('--surface') : cssVar('--chart-bar'),
+      stroke: cssVar('--chart-bar'), 'stroke-width': 2 });
+    const tip = () => `<div class="tt-title">${monthLabel(d.month)} ${d.month.slice(0, 4)}</div>
+      <div class="tt-row"><span>العمالة</span><span class="num">${fmt(d.labor)}</span></div>
+      <div class="tt-row"><span>إجمالي الشهر</span><span class="num">${fmt(d.total)}</span></div>
+      <div class="tt-row"><span>النصيب</span><span class="num">${pct(d.share)}٪</span></div>
+      ${isPartial ? '<div class="tt-row"><span>تنبيه</span><span>بيانات الشهر غير مكتملة</span></div>' : ''}`;
+    dot.addEventListener('mouseenter', e => showTooltipHTML(e, tip()));
+    dot.addEventListener('mousemove', e => showTooltipHTML(e, tip()));
+    dot.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(dot);
+
+    const val = el('text', { x, y: y - 13, 'text-anchor': 'middle',
+      style: 'font-size:11px;font-weight:600;paint-order:stroke;stroke:' + cssVar('--surface') + ';stroke-width:3px;stroke-linejoin:round',
+      fill: cssVar('--ink') });
+    val.textContent = ltr(`${pct(d.share)}٪`);
+    svg.appendChild(val);
+
+    const name = el('text', { x, y: VH - 12, 'text-anchor': 'middle',
+      style: 'font-size:12px', fill: cssVar('--ink-muted') });
+    name.textContent = monthLabel(d.month) + (isPartial ? ' *' : '');
+    svg.appendChild(name);
+  });
+
+  const note = document.getElementById('labor-note');
+  if (note) {
+    const hi = data.reduce((a, d) => (d.share > a.share ? d : a), data[0]);
+    const lo = data.reduce((a, d) => (d.share < a.share ? d : a), data[0]);
+    note.innerHTML = `تتراوح حصة العمالة بين <b>${pct(lo.share)}٪</b> في <b>${monthLabel(lo.month)}</b> و<b>${pct(hi.share)}٪</b> في <b>${monthLabel(hi.month)}</b>، ` +
+      `بمتوسط <b>${pct(avgShare)}٪</b> على الفترة. ارتفاع النسبة لا يعني بالضرورة زيادة أجور، فقد يعني تراجع الإنفاق على غير العمالة في ذلك الشهر.`;
+  }
+}
+
+// ── مدى الرصيد شهريًا ───────────────────────────────────────────────────────
+// عمود لكل شهر من أدنى رصيد إلى أعلاه، ونقطة عند رصيد آخر الشهر. رصيد الإقفال
+// وحده مضلّل هنا: أبريل أقفل على 181 ألفًا بعد أن بلغ 1.9 مليون، ومايو أقفل على
+// 2.2 مليون بعد أن نزل إلى 106 آلاف. المطلوب إداريًا هو القاع، لا الإقفال.
+function renderBalanceRangeChart() {
+  const section = document.getElementById('balance-range-section');
+  if (!section) return;
+  const pts = (typeof BALANCE !== 'undefined' && Array.isArray(BALANCE)) ? BALANCE : [];
+  if (pts.length < 2) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const byMonth = new Map();
+  pts.forEach(p => {
+    const m = p.d.slice(0, 7);
+    if (!byMonth.has(m)) byMonth.set(m, { month: m, min: p.b, max: p.b, close: p.b, n: 0, minDate: p.d, maxDate: p.d });
+    const e = byMonth.get(m);
+    if (p.b < e.min) { e.min = p.b; e.minDate = p.d; }
+    if (p.b > e.max) { e.max = p.b; e.maxDate = p.d; }
+    e.close = p.b;          // BALANCE مرتّب زمنيًا، فآخر نقطة هي الإقفال
+    e.n++;
+  });
+  const data = [...byMonth.values()];
+
+  const svg = document.getElementById('balance-range-svg');
+  svg.innerHTML = '';
+  const VW = 1000, VH = 380;
+  const mTop = 26, mBottom = 38, mLeft = 12, mRight = 76;
+  const plotW = VW - mLeft - mRight, plotH = VH - mTop - mBottom;
+  const niceMax = niceCeil(Math.max(...data.map(d => d.max)));
+  const yAt = v => mTop + plotH - (v / niceMax) * plotH;
+  const n = data.length, slot = plotW / n, barW = Math.min(30, slot * 0.26);
+
+  addBarDefs(svg, [{ id: 'grad-range', top: '--chart-bar-top', bottom: '--chart-bar-bottom' }]);
+
+  const steps = 5;
+  for (let i = 0; i <= steps; i++) {
+    const val = (niceMax / steps) * i;
+    const y = yAt(val);
+    svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight + 8, y1: y, y2: y,
+      stroke: cssVar('--border-soft'), 'stroke-width': 1 }));
+    const lab = el('text', { x: VW - 4, y: y + 4, 'text-anchor': 'start',
+      style: 'font-size:10px', fill: cssVar('--ink-faint') });
+    lab.textContent = fmt(val);
+    svg.appendChild(lab);
+  }
+
+  // خط عند أدنى رصيد بلغه الحساب في الفترة كلها — القاع هو الرقم الذي يُسأل عنه
+  const lowest = data.reduce((a, d) => (d.min < a.min ? d : a), data[0]);
+  const lowY = yAt(lowest.min);
+  svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight, y1: lowY, y2: lowY,
+    stroke: cssVar('--chart-up'), 'stroke-width': 1.5, 'stroke-dasharray': '6 5' }));
+  // الملصق عند الطرف الأيسر: الأيمن مزدحم بملصقات أدنى قيم آخر الأشهر
+  const lowText = `أدنى رصيد في الفترة ${fmt(lowest.min)}`;
+  const lowLab = el('text', { x: mLeft, y: lowY - 7, 'text-anchor': 'end',
+    style: 'font-size:10.5px;font-weight:600;paint-order:stroke;stroke:' + cssVar('--surface') + ';stroke-width:3px;stroke-linejoin:round',
+    fill: cssVar('--chart-up') });
+  lowLab.textContent = lowText;
+  svg.appendChild(lowLab);
+
+  data.forEach((d, i) => {
+    const cx = mLeft + i * slot + slot / 2;
+    const yTop = yAt(d.max), yBot = yAt(d.min);
+    const bar = el('rect', {
+      x: cx - barW / 2, y: yTop, width: barW, height: Math.max(yBot - yTop, 2), rx: 5,
+      fill: 'url(#grad-range)', filter: 'url(#bar-shadow)'
+    });
+    const tip = () => `<div class="tt-title">${monthLabel(d.month)} ${d.month.slice(0, 4)}</div>
+      <div class="tt-row"><span>أعلى رصيد</span><span class="num">${fmt(d.max)}</span></div>
+      <div class="tt-row"><span>أدنى رصيد</span><span class="num">${fmt(d.min)}</span></div>
+      <div class="tt-row"><span>رصيد آخر الشهر</span><span class="num">${fmt(d.close)}</span></div>
+      <div class="tt-row"><span>المدى</span><span class="num">${fmt(d.max - d.min)}</span></div>`;
+    bar.addEventListener('mouseenter', e => showTooltipHTML(e, tip()));
+    bar.addEventListener('mousemove', e => showTooltipHTML(e, tip()));
+    bar.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(bar);
+    addBarHighlight(svg, cx - barW / 2, yTop, barW, '--chart-bar-top');
+
+    // نقطة الإقفال: حلقة بلون السطح تفصلها عن العمود تحتها
+    svg.appendChild(el('circle', { cx, cy: yAt(d.close), r: 5,
+      fill: cssVar('--ink'), stroke: cssVar('--surface'), 'stroke-width': 2 }));
+
+    const maxLab = el('text', { x: cx, y: yTop - 8, 'text-anchor': 'middle',
+      style: 'font-size:10.5px;font-weight:600', fill: cssVar('--ink-muted') });
+    maxLab.textContent = fmt(d.max);
+    svg.appendChild(maxLab);
+
+    const minLab = el('text', { x: cx, y: yBot + 15, 'text-anchor': 'middle',
+      style: 'font-size:10.5px;font-weight:700;paint-order:stroke;stroke:' + cssVar('--surface') + ';stroke-width:3px;stroke-linejoin:round',
+      fill: cssVar('--ink') });
+    minLab.textContent = fmt(d.min);
+    svg.appendChild(minLab);
+
+    const nameLab = el('text', { x: cx, y: VH - 12, 'text-anchor': 'middle',
+      style: 'font-size:12px', fill: cssVar('--ink-muted') });
+    nameLab.textContent = monthLabel(d.month);
+    svg.appendChild(nameLab);
+  });
+
+  const note = document.getElementById('balance-range-note');
+  if (note) {
+    note.innerHTML = `النقطة الداكنة رصيد آخر الشهر، وطول العمود هو الفارق بين أدنى وأعلى رصيد داخله. ` +
+      `أدنى رصيد بلغه الحساب كان <b>${fmt(lowest.min)}</b> في <b>${arDate(lowest.minDate)}</b>، ` +
+      `بينما أقفل ذلك الشهر على <b>${fmt(lowest.close)}</b> — ولهذا لا يكفي رصيد الإقفال وحده لقراءة وضع السيولة.`;
+  }
+}
+
+// ── Bank balance curve ──────────────────────────────────────────────────────
+// One point per transaction rather than per month, so the shape shows what the
+// monthly closing figures hide: how deep the account actually ran between the
+// month ends. X is real elapsed time, not an index, so a quiet fortnight reads
+// as a gap rather than as evenly-spaced activity. Y starts at zero so the dips
+// are read against the whole balance, not an exaggerated window.
+function renderBalanceChart() {
+  const section = document.getElementById('balance-section');
+  if (!section) return;
+  const pts = (typeof BALANCE !== 'undefined' && Array.isArray(BALANCE)) ? BALANCE : [];
+  if (pts.length < 2) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const svg = document.getElementById('balance-svg');
+  svg.innerHTML = '';
+  const VW = 1000, VH = 380;
+  const mTop = 20, mBottom = 34, mLeft = 24, mRight = 70;
+  const plotW = VW - mLeft - mRight, plotH = VH - mTop - mBottom;
+
+  const t = d => Date.parse(d + 'T00:00:00Z');
+  const t0 = t(pts[0].d), t1 = t(pts[pts.length - 1].d);
+  const span = Math.max(1, t1 - t0);
+  const niceMax = niceCeil(Math.max(...pts.map(p => p.b)));
+  const xAt = d => mLeft + ((t(d) - t0) / span) * plotW;
+  const yAt = v => mTop + plotH - (v / niceMax) * plotH;
+
+  const steps = 5;
+  for (let i = 0; i <= steps; i++) {
+    const val = (niceMax / steps) * i;
+    const y = yAt(val);
+    svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight + 8, y1: y, y2: y, stroke: cssVar('--border-soft'), 'stroke-width': 1 }));
+    const label = el('text', { x: VW - 4, y: y + 4, 'text-anchor': 'end', style: 'font-size:10px', fill: cssVar('--ink-faint') });
+    label.textContent = fmt(val);
+    svg.appendChild(label);
+  }
+
+  // One tick per month, placed on the first of that month.
+  const months = [...new Set(pts.map(p => p.d.slice(0, 7)))];
+  months.forEach(m => {
+    const x = xAt(m + '-01');
+    if (x < mLeft - 1 || x > VW - mRight + 1) return;
+    svg.appendChild(el('line', { x1: x, x2: x, y1: mTop, y2: mTop + plotH, stroke: cssVar('--border-soft'), 'stroke-width': 1, 'stroke-dasharray': '2 4' }));
+    const label = el('text', { x: x, y: VH - mBottom + 22, 'text-anchor': 'middle', style: 'font-size:12px', fill: cssVar('--ink-muted') });
+    label.textContent = monthLabel(m);
+    svg.appendChild(label);
+  });
+
+  const line = pts.map(p => [xAt(p.d), yAt(p.b)]);
+  const color = cssVar('--series-balance');
+  // خط درجي لا مائل: الرصيد يثبت كما هو حتى المعاملة التالية، فالخط المائل
+  // بينهما يوحي بتدرّج لم يحدث.
+  const stepPath = line.reduce((d, p, i) =>
+    i === 0 ? `M ${p[0].toFixed(1)} ${p[1].toFixed(1)}`
+            : `${d} L ${p[0].toFixed(1)} ${line[i - 1][1].toFixed(1)} L ${p[0].toFixed(1)} ${p[1].toFixed(1)}`, '');
+  svg.appendChild(el('path', {
+    d: stepPath + ` L ${line[line.length - 1][0].toFixed(1)} ${(mTop + plotH).toFixed(1)} L ${line[0][0].toFixed(1)} ${(mTop + plotH).toFixed(1)} Z`,
+    fill: color, opacity: 0.10,
+  }));
+  svg.appendChild(el('path', {
+    d: stepPath,
+    fill: 'none', stroke: color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+  }));
+
+  // Highest and lowest points, labelled — the two anyone looks for.
+  const hi = pts.reduce((a, p) => (p.b > a.b ? p : a), pts[0]);
+  const lo = pts.reduce((a, p) => (p.b < a.b ? p : a), pts[0]);
+  [[hi, -10, cssVar('--series-credit')], [lo, 16, cssVar('--series-debit')]].forEach(([p, dy, c]) => {
+    svg.appendChild(el('circle', { cx: xAt(p.d), cy: yAt(p.b), r: 4.5, fill: c, stroke: cssVar('--surface'), 'stroke-width': 2 }));
+    const label = el('text', { x: Math.min(Math.max(xAt(p.d), mLeft + 40), VW - mRight - 40), y: yAt(p.b) + dy, 'text-anchor': 'middle', style: 'font-size:11px;font-weight:700', fill: c });
+    label.textContent = fmt(p.b);
+    svg.appendChild(label);
+  });
+
+  const cross = el('line', { x1: 0, x2: 0, y1: mTop, y2: mTop + plotH, stroke: cssVar('--ink-faint'), 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0 });
+  svg.appendChild(cross);
+  const dot = el('circle', { cx: 0, cy: 0, r: 4, fill: color, stroke: cssVar('--surface'), 'stroke-width': 2, opacity: 0 });
+  svg.appendChild(dot);
+
+  // A single overlay that picks the nearest point, rather than 208 hit areas.
+  const overlay = el('rect', { x: mLeft, y: mTop, width: plotW, height: plotH, fill: 'transparent', style: 'cursor:crosshair' });
+  const move = e => {
+    const box = svg.getBoundingClientRect();
+    const xSvg = ((e.clientX - box.left) / box.width) * VW;
+    let best = 0, bestDist = Infinity;
+    line.forEach((p, i) => { const d = Math.abs(p[0] - xSvg); if (d < bestDist) { bestDist = d; best = i; } });
+    const p = pts[best];
+    cross.setAttribute('x1', line[best][0]); cross.setAttribute('x2', line[best][0]); cross.setAttribute('opacity', 1);
+    dot.setAttribute('cx', line[best][0]); dot.setAttribute('cy', line[best][1]); dot.setAttribute('opacity', 1);
+    const prev = best > 0 ? pts[best - 1].b : null;
+    const delta = prev == null ? null : p.b - prev;
+    const deltaRow = delta == null ? '' :
+      `<div class="tt-row"><span class="tt-key">الحركة</span><span class="num">${delta >= 0 ? '+' : '−'}${fmt(Math.abs(delta))}</span></div>`;
+    showTooltipHTML(e, `<div class="tt-title">${arDate(p.d)}</div>` +
+      `<div class="tt-row"><span class="tt-key"><i style="background:${color}"></i>الرصيد</span><span class="num">${fmt(p.b)}</span></div>${deltaRow}`);
+  };
+  overlay.addEventListener('mouseenter', move);
+  overlay.addEventListener('mousemove', move);
+  overlay.addEventListener('mouseleave', () => { cross.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); hideTooltip(); });
+  svg.appendChild(overlay);
+
+  const note = document.getElementById('balance-note');
+  if (note) {
+    const meta = (typeof BALANCE_META !== 'undefined' && BALANCE_META) ? BALANCE_META : {};
+    // Say what was left out: the balances are the bank's real ones, the curve
+    // just doesn't spend a vertex on a 25 EGP fee.
+    const omitted = meta.skipped
+      ? ` · لا تظهر ${meta.skipped} حركة ${(meta.skipped_categories || []).join('، ') || 'صغيرة'} على المنحنى (الأرصدة كما هي من البنك)`
+      : '';
+    note.innerHTML = `${pts.length} نقطة من ${meta.count || pts.length} معاملة بنكية، من <b>${arDate(pts[0].d)}</b> إلى <b>${arDate(pts[pts.length - 1].d)}</b> · ` +
+      `أعلى رصيد <b class="num">${fmt(hi.b)}</b> في ${arDate(hi.d)} · أدنى رصيد <b class="num">${fmt(lo.b)}</b> في ${arDate(lo.d)}${omitted}`;
+  }
+}
+
+function pickTextColor(hex) {
+  const [r, g, b] = hex.match(/\w\w/g).map(h => parseInt(h, 16));
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.55 ? '#1c2430' : '#f5f1e8';
+}
+
+const MONTH_NAMES = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+function arDate(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${d} ${MONTH_NAMES[m - 1]} ${y}`;
+}
+
+function renderTable(slices) {
+  const tbody = document.getElementById('tbl-body');
+  tbody.innerHTML = '';
+  slices.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    const share = d.value / DATA.grand_total;
+    const badge = d.other
+      ? `<span class="badge other"><span class="dot"></span>مجمّع</span>`
+      : d.compound
+        ? `<span class="badge compound"><span class="dot"></span>مركّب</span>`
+        : `<span class="badge single"><span class="dot"></span>مصدر واحد</span>`;
+    tr.innerHTML = `
+      <td class="rank">${i + 1}</td>
+      <td class="src-name">${d.label}${d.other ? ` <span style="color:var(--ink-faint);font-weight:400">(${d.n_sources} مصدرًا)</span>` : ''}</td>
+      <td>${badge}</td>
+      <td class="num-col num">${fmt(d.value)}</td>
+      <td>
+        <div class="share-bar-wrap">
+          <div class="share-bar-track"><div class="share-bar-fill" style="width:${(share * 100).toFixed(1)}%; background:${d.fill}"></div></div>
+          <span class="num" style="font-size:12px;color:var(--ink-muted);min-width:38px">${pct(share)}%</span>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Raw data by month ────────────────────────────────────────────────────
+const ROWS = [{"sheet": 1, "date": "2026-01-04", "month": "2026-01", "source": "قبض العمال", "amount": 34500.0, "status": "مراجَع"}, {"sheet": 1, "date": "2026-01-04", "month": "2026-01", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 1, "date": "2026-01-04", "month": "2026-01", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 1, "date": "2026-01-04", "month": "2026-01", "source": "تكاليف الفرع الثاني", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 1, "date": "2026-01-04", "month": "2026-01", "source": "انشاءات", "amount": 13800.0, "status": "مراجَع"}, {"sheet": 1, "date": "2026-01-04", "month": "2026-01", "source": "جلبة وسلك", "amount": 25070.0, "status": "مراجَع"}, {"sheet": 1, "date": "2026-01-04", "month": "2026-01", "source": "كرتون", "amount": 1150.0, "status": "مراجَع"}, {"sheet": 1, "date": "2026-01-04", "month": "2026-01", "source": "عدة", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "قبض العمال", "amount": 34500.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "مصروف العمال", "amount": 6210.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "كهرباء", "amount": 6210.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "نحاس", "amount": 16100.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "تكاليف سيارة", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "كرتون", "amount": 2645.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "جلبة وسلك", "amount": 3864.0, "status": "مراجَع"}, {"sheet": 2, "date": "2026-01-10", "month": "2026-01", "source": "عدة، لصق", "amount": 1150.0, "status": "مراجَع"}, {"sheet": 3, "date": "2026-01-17", "month": "2026-01", "source": "قبض العمال", "amount": 35650.0, "status": "مراجَع"}, {"sheet": 3, "date": "2026-01-17", "month": "2026-01", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 3, "date": "2026-01-17", "month": "2026-01", "source": "استهلاكات، محروقات", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 3, "date": "2026-01-17", "month": "2026-01", "source": "تكاليف الفرع الثاني، خامات", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 3, "date": "2026-01-17", "month": "2026-01", "source": "نحاس", "amount": 460.0, "status": "مراجَع"}, {"sheet": 3, "date": "2026-01-17", "month": "2026-01", "source": "عدة، كرتون", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 4, "date": "2026-01-25", "month": "2026-01", "source": "ضرائب", "amount": 23000.0, "status": "مراجَع"}, {"sheet": 4, "date": "2026-01-25", "month": "2026-01", "source": "ضرائب", "amount": 69723.81, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "صيانة", "amount": 4600.0, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "خامات", "amount": 15525.0, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "تأمينات", "amount": 8337.5, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "تأمينات", "amount": 4508.0, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "تكاليف الفرع الثاني، خامات", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "قبض العمال", "amount": 35650.0, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 5, "date": "2026-01-26", "month": "2026-01", "source": "شكاير، عدة، فدي، كرتون", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 6, "date": "2026-02-01", "month": "2026-02", "source": "قبض العمال", "amount": 39100.0, "status": "مراجَع"}, {"sheet": 6, "date": "2026-02-01", "month": "2026-02", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 6, "date": "2026-02-01", "month": "2026-02", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 6, "date": "2026-02-01", "month": "2026-02", "source": "قبض موظفين", "amount": 32085.0, "status": "مراجَع"}, {"sheet": 6, "date": "2026-02-01", "month": "2026-02", "source": "أنابيب، تكاليف الفرع الثاني", "amount": 4600.0, "status": "مراجَع"}, {"sheet": 6, "date": "2026-02-01", "month": "2026-02", "source": "شكاير، عدة", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 6, "date": "2026-02-01", "month": "2026-02", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 1851.5, "status": "مراجَع"}, {"sheet": 8, "date": "2026-02-15", "month": "2026-02", "source": "قبض العمال", "amount": 35650.0, "status": "مراجَع"}, {"sheet": 8, "date": "2026-02-15", "month": "2026-02", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 8, "date": "2026-02-15", "month": "2026-02", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 8, "date": "2026-02-15", "month": "2026-02", "source": "تكاليف الفرع الثاني", "amount": 1150.0, "status": "مراجَع"}, {"sheet": 8, "date": "2026-02-15", "month": "2026-02", "source": "خامات، شكاير، عدة، كرتون", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 11, "date": "2026-02-21", "month": "2026-02", "source": "قبض العمال", "amount": 34500.0, "status": "مراجَع"}, {"sheet": 11, "date": "2026-02-21", "month": "2026-02", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 11, "date": "2026-02-21", "month": "2026-02", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 11, "date": "2026-02-21", "month": "2026-02", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 11, "date": "2026-02-21", "month": "2026-02", "source": "تأمينات", "amount": 12845.5, "status": "مراجَع"}, {"sheet": 11, "date": "2026-02-21", "month": "2026-02", "source": "تكاليف الفرع الثاني، خامات", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 11, "date": "2026-02-21", "month": "2026-02", "source": "شكاير، كرتون", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 11, "date": "2026-02-21", "month": "2026-02", "source": "دوجلات، عدة", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "قبض العمال", "amount": 37950.0, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "استهلاكات، تكاليف سيارة", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "جلبة وسلك", "amount": 16578.63, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "تأمينات", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "تكاليف سيارة", "amount": 1610.0, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "شكاير، عدة", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "تكاليف الفرع الثاني، قاعدة الهيتر", "amount": 4600.0, "status": "مراجَع"}, {"sheet": 7, "date": "2026-02-26", "month": "2026-02", "source": "تكاليف الفرع الثاني", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 9, "date": "2026-02-28", "month": "2026-02", "source": "قبض العمال", "amount": 35650.0, "status": "مراجَع"}, {"sheet": 9, "date": "2026-02-28", "month": "2026-02", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 9, "date": "2026-02-28", "month": "2026-02", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 9, "date": "2026-02-28", "month": "2026-02", "source": "قبض موظفين", "amount": 30808.5, "status": "مراجَع"}, {"sheet": 9, "date": "2026-02-28", "month": "2026-02", "source": "عدة", "amount": 1150.0, "status": "مراجَع"}, {"sheet": 9, "date": "2026-02-28", "month": "2026-02", "source": "تكاليف الفرع الثاني، خامات", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 9, "date": "2026-02-28", "month": "2026-02", "source": "مصنعيات، نحاس", "amount": 23000.0, "status": "مراجَع"}, {"sheet": 9, "date": "2026-02-28", "month": "2026-02", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 1851.5, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "قبض العمال", "amount": 35650.0, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "تكاليف الفرع الثاني، قاعدة الهيتر", "amount": 2760.0, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "كرتون", "amount": 2530.0, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "شكاير، عدة", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "جلبة وسلك", "amount": 21390.0, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "رسوم قانونية", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 10, "date": "2026-03-08", "month": "2026-03", "source": "نحاس", "amount": 13041.0, "status": "مراجَع"}, {"sheet": 12, "date": "2026-03-15", "month": "2026-03", "source": "قبض العمال", "amount": 34500.0, "status": "مراجَع"}, {"sheet": 12, "date": "2026-03-15", "month": "2026-03", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 12, "date": "2026-03-15", "month": "2026-03", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 12, "date": "2026-03-15", "month": "2026-03", "source": "تكاليف الفرع الثاني", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 13, "date": "2026-03-17", "month": "2026-03", "source": "قبض العمال", "amount": 34500.0, "status": "مراجَع"}, {"sheet": 13, "date": "2026-03-17", "month": "2026-03", "source": "قبض العيد", "amount": 15410.0, "status": "مراجَع"}, {"sheet": 13, "date": "2026-03-17", "month": "2026-03", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 13, "date": "2026-03-17", "month": "2026-03", "source": "استهلاكات، محروقات", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 13, "date": "2026-03-17", "month": "2026-03", "source": "ضرائب", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 14, "date": "2026-03-29", "month": "2026-03", "source": "قبض العمال", "amount": 24150.0, "status": "مراجَع"}, {"sheet": 14, "date": "2026-03-29", "month": "2026-03", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 14, "date": "2026-03-29", "month": "2026-03", "source": "استهلاكات", "amount": 4600.0, "status": "مراجَع"}, {"sheet": 14, "date": "2026-03-29", "month": "2026-03", "source": "تأمينات، خامات", "amount": 23000.0, "status": "مراجَع"}, {"sheet": 15, "date": "2026-04-05", "month": "2026-04", "source": "قبض العمال", "amount": 33350.0, "status": "مراجَع"}, {"sheet": 15, "date": "2026-04-05", "month": "2026-04", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 15, "date": "2026-04-05", "month": "2026-04", "source": "استهلاكات، كرتون، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 15, "date": "2026-04-05", "month": "2026-04", "source": "تأمينات، تكاليف الفرع الثاني، مصروف العمال، نحاس", "amount": 39100.0, "status": "مراجَع"}, {"sheet": 15, "date": "2026-04-05", "month": "2026-04", "source": "جلبة وسلك", "amount": 24610.0, "status": "مراجَع"}, {"sheet": 15, "date": "2026-04-05", "month": "2026-04", "source": "قبض موظفين", "amount": 28738.5, "status": "مراجَع"}, {"sheet": 15, "date": "2026-04-05", "month": "2026-04", "source": "ضرائب", "amount": 14306.0, "status": "مراجَع"}, {"sheet": 15, "date": "2026-04-05", "month": "2026-04", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 1851.5, "status": "مراجَع"}, {"sheet": 16, "date": "2026-04-19", "month": "2026-04", "source": "قبض العمال", "amount": 30820.0, "status": "مراجَع"}, {"sheet": 16, "date": "2026-04-19", "month": "2026-04", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 16, "date": "2026-04-19", "month": "2026-04", "source": "استهلاكات، محروقات", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 16, "date": "2026-04-19", "month": "2026-04", "source": "رسوم قانونية", "amount": 1840.0, "status": "مراجَع"}, {"sheet": 16, "date": "2026-04-19", "month": "2026-04", "source": "نحاس", "amount": 11128.32, "status": "مراجَع"}, {"sheet": 16, "date": "2026-04-19", "month": "2026-04", "source": "تكاليف الفرع الثاني", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 17, "date": "2026-04-26", "month": "2026-04", "source": "قبض العمال", "amount": 33350.0, "status": "مراجَع"}, {"sheet": 17, "date": "2026-04-26", "month": "2026-04", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 17, "date": "2026-04-26", "month": "2026-04", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 17, "date": "2026-04-26", "month": "2026-04", "source": "تكاليف الفرع الثاني", "amount": 1150.0, "status": "مراجَع"}, {"sheet": 17, "date": "2026-04-26", "month": "2026-04", "source": "شكاير، كرتون", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 17, "date": "2026-04-26", "month": "2026-04", "source": "أظرف مخرطة، عدة", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 18, "date": "2026-04-30", "month": "2026-04", "source": "ضرائب", "amount": 103705.85, "status": "مراجَع"}, {"sheet": 19, "date": "2026-05-10", "month": "2026-05", "source": "قبض العمال", "amount": 34500.0, "status": "مراجَع"}, {"sheet": 19, "date": "2026-05-10", "month": "2026-05", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 19, "date": "2026-05-10", "month": "2026-05", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 19, "date": "2026-05-10", "month": "2026-05", "source": "تأمينات، تكاليف الفرع الثاني", "amount": 19768.5, "status": "مراجَع"}, {"sheet": 19, "date": "2026-05-10", "month": "2026-05", "source": "عدة، كرتون", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 19, "date": "2026-05-10", "month": "2026-05", "source": "كهرباء", "amount": 3530.5, "status": "مراجَع"}, {"sheet": 19, "date": "2026-05-10", "month": "2026-05", "source": "قبض موظفين", "amount": 27485.0, "status": "مراجَع"}, {"sheet": 19, "date": "2026-05-10", "month": "2026-05", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 8751.5, "status": "مراجَع"}, {"sheet": 20, "date": "2026-05-17", "month": "2026-05", "source": "قبض العمال", "amount": 37950.0, "status": "مراجَع"}, {"sheet": 20, "date": "2026-05-17", "month": "2026-05", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 20, "date": "2026-05-17", "month": "2026-05", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 20, "date": "2026-05-17", "month": "2026-05", "source": "تأمينات، تكاليف الفرع الثاني", "amount": 13800.0, "status": "مراجَع"}, {"sheet": 20, "date": "2026-05-17", "month": "2026-05", "source": "ضرائب، رسوم قانونية", "amount": 12650.0, "status": "مراجَع"}, {"sheet": 20, "date": "2026-05-17", "month": "2026-05", "source": "عدة، كرتون", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 20, "date": "2026-05-17", "month": "2026-05", "source": "جلبة وسلك", "amount": 23621.0, "status": "مراجَع"}, {"sheet": 21, "date": "2026-05-24", "month": "2026-05", "source": "قبض العيد", "amount": 36800.0, "status": "مراجَع"}, {"sheet": 21, "date": "2026-05-24", "month": "2026-05", "source": "قبض العيد", "amount": 33350.0, "status": "مراجَع"}, {"sheet": 21, "date": "2026-05-24", "month": "2026-05", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 21, "date": "2026-05-24", "month": "2026-05", "source": "استهلاكات، محروقات", "amount": 4600.0, "status": "مراجَع"}, {"sheet": 21, "date": "2026-05-24", "month": "2026-05", "source": "شكاير، عدة، كرتون", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 21, "date": "2026-05-24", "month": "2026-05", "source": "ضرائب، رسوم قانونية", "amount": 13800.0, "status": "مراجَع"}, {"sheet": 21, "date": "2026-05-24", "month": "2026-05", "source": "قبض العيد", "amount": 7843.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "قبض العمال", "amount": 18400.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "قبض العمال", "amount": 25300.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "كهرباء", "amount": 4715.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "استهلاكات، محروقات", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "قبض موظفين", "amount": 23218.5, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "رسوم قانونية", "amount": 13800.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "ضرائب", "amount": 13800.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "رسوم قانونية", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 22, "date": "2026-06-07", "month": "2026-06", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 1851.5, "status": "مراجَع"}, {"sheet": 23, "date": "2026-06-14", "month": "2026-06", "source": "قبض العمال", "amount": 37950.0, "status": "مراجَع"}, {"sheet": 23, "date": "2026-06-14", "month": "2026-06", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 23, "date": "2026-06-14", "month": "2026-06", "source": "استهلاكات، محروقات", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 23, "date": "2026-06-14", "month": "2026-06", "source": "تكاليف الفرع الثاني", "amount": 4600.0, "status": "مراجَع"}, {"sheet": 23, "date": "2026-06-14", "month": "2026-06", "source": "عدة", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 26, "date": "2026-06-15", "month": "2026-06", "source": "شيكات مباشرة", "amount": 175823.5, "status": "مراجَع"}, {"sheet": 24, "date": "2026-06-26", "month": "2026-06", "source": "قبض العمال", "amount": 36800.0, "status": "مراجَع"}, {"sheet": 24, "date": "2026-06-26", "month": "2026-06", "source": "تكاليف الفرع الثاني", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 24, "date": "2026-06-26", "month": "2026-06", "source": "استهلاكات، عدة، محروقات", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 24, "date": "2026-06-26", "month": "2026-06", "source": "تكاليف الفرع الثاني", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 24, "date": "2026-06-26", "month": "2026-06", "source": "جلبة وسلك", "amount": 3266.0, "status": "مراجَع"}, {"sheet": 24, "date": "2026-06-26", "month": "2026-06", "source": "تكاليف مكبس", "amount": 3634.0, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "قبض العمال", "amount": 37950.0, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "عدة، كرتون", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "تأمينات، تكاليف الفرع الثاني", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "قبض موظفين", "amount": 23448.5, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "ضرائب", "amount": 11500.0, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "تكاليف سيارة", "amount": 12650.0, "status": "مراجَع"}, {"sheet": 25, "date": "2026-06-28", "month": "2026-06", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 8751.5, "status": "مراجَع"}, {"sheet": 27, "date": "2026-07-12", "month": "2026-07", "source": "قبض العمال", "amount": 37950.0, "status": "مراجَع"}, {"sheet": 27, "date": "2026-07-12", "month": "2026-07", "source": "مصروف العمال", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 27, "date": "2026-07-12", "month": "2026-07", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 27, "date": "2026-07-12", "month": "2026-07", "source": "تكاليف الفرع الثاني", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 27, "date": "2026-07-12", "month": "2026-07", "source": "عدة أقلام، فدي", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 27, "date": "2026-07-12", "month": "2026-07", "source": "كرتون", "amount": 1610.0, "status": "مراجَع"}, {"sheet": 27, "date": "2026-07-12", "month": "2026-07", "source": "جلبة وسلك", "amount": 16882.0, "status": "مراجَع"}, {"sheet": 28, "date": "2026-07-19", "month": "2026-07", "source": "قبض العمال", "amount": 36800.0, "status": "مراجَع"}, {"sheet": 28, "date": "2026-07-19", "month": "2026-07", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 28, "date": "2026-07-19", "month": "2026-07", "source": "استهلاكات، عدة، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 28, "date": "2026-07-19", "month": "2026-07", "source": "تأمينات", "amount": 3105.0, "status": "مراجَع"}, {"sheet": 28, "date": "2026-07-19", "month": "2026-07", "source": "تكاليف الفرع الثاني", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 28, "date": "2026-07-19", "month": "2026-07", "source": "ضرائب", "amount": 11500.0, "status": "مراجَع"}, {"sheet": 28, "date": "2026-07-19", "month": "2026-07", "source": "تكاليف سيارة", "amount": 1840.0, "status": "مراجَع"}, {"sheet": 29, "date": "2026-07-26", "month": "2026-07", "source": "قبض العمال", "amount": 36800.0, "status": "مراجَع"}, {"sheet": 29, "date": "2026-07-26", "month": "2026-07", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 29, "date": "2026-07-26", "month": "2026-07", "source": "استهلاكات، محروقات", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 29, "date": "2026-07-26", "month": "2026-07", "source": "تأمينات، محروقات", "amount": 23000.0, "status": "مراجَع"}, {"sheet": 29, "date": "2026-07-26", "month": "2026-07", "source": "قبض موظفين", "amount": 25748.5, "status": "مراجَع"}, {"sheet": 29, "date": "2026-07-26", "month": "2026-07", "source": "عدة، كرتون", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 29, "date": "2026-07-26", "month": "2026-07", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 8751.5, "status": "مراجَع"}, {"sheet": 30, "date": "2026-08-02", "month": "2026-08", "source": "قبض العمال", "amount": 33350.0, "status": "مراجَع"}, {"sheet": 30, "date": "2026-08-02", "month": "2026-08", "source": "مشرف الورشة، مصروف العمال", "amount": 9200.0, "status": "مراجَع"}, {"sheet": 30, "date": "2026-08-02", "month": "2026-08", "source": "استهلاكات، محروقات", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 30, "date": "2026-08-02", "month": "2026-08", "source": "تكاليف الفرع الثاني", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 30, "date": "2026-08-02", "month": "2026-08", "source": "شكاير، عدة، كرتون", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 30, "date": "2026-08-02", "month": "2026-08", "source": "كهرباء", "amount": 5290.0, "status": "مراجَع"}, {"sheet": 31, "date": "2026-08-09", "month": "2026-08", "source": "قبض العمال", "amount": 36800.0, "status": "مراجَع"}, {"sheet": 31, "date": "2026-08-09", "month": "2026-08", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 31, "date": "2026-08-09", "month": "2026-08", "source": "استهلاكات، تكاليف سيارة", "amount": 13800.0, "status": "مراجَع"}, {"sheet": 31, "date": "2026-08-09", "month": "2026-08", "source": "كهرباء", "amount": 1610.0, "status": "مراجَع"}, {"sheet": 31, "date": "2026-08-09", "month": "2026-08", "source": "كرتون", "amount": 2645.0, "status": "مراجَع"}, {"sheet": 31, "date": "2026-08-09", "month": "2026-08", "source": "تكاليف سيارة، عدة", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 31, "date": "2026-08-09", "month": "2026-08", "source": "أنابيب، تكاليف الفرع الثاني، تكاليف مكبس", "amount": 11500.0, "status": "مراجَع"}, {"sheet": 31, "date": "2026-08-09", "month": "2026-08", "source": "جلبة وسلك", "amount": 28678.7, "status": "مراجَع"}, {"sheet": 33, "date": "2026-08-23", "month": "2026-08", "source": "قبض العمال", "amount": 36800.0, "status": "مراجَع"}, {"sheet": 33, "date": "2026-08-23", "month": "2026-08", "source": "مشرف الورشة، تكاليف سيارة", "amount": 11500.0, "status": "مراجَع"}, {"sheet": 33, "date": "2026-08-23", "month": "2026-08", "source": "تكاليف الفرع الثاني", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 33, "date": "2026-08-23", "month": "2026-08", "source": "شكاير، عدة، كرتون", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 32, "date": "2026-08-26", "month": "2026-08", "source": "قبض العمال", "amount": 36800.0, "status": "مراجَع"}, {"sheet": 32, "date": "2026-08-26", "month": "2026-08", "source": "تكاليف سيارة، مصروف العمال", "amount": 11500.0, "status": "مراجَع"}, {"sheet": 32, "date": "2026-08-26", "month": "2026-08", "source": "تكاليف الفرع الثاني", "amount": 3450.0, "status": "مراجَع"}, {"sheet": 32, "date": "2026-08-26", "month": "2026-08", "source": "تكاليف سيارة", "amount": 1150.0, "status": "مراجَع"}, {"sheet": 32, "date": "2026-08-26", "month": "2026-08", "source": "سكاكين نحاس، عدة", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 34, "date": "2026-08-30", "month": "2026-08", "source": "قبض العمال", "amount": 36800.0, "status": "مراجَع"}, {"sheet": 34, "date": "2026-08-30", "month": "2026-08", "source": "مشرف الورشة، تكاليف سيارة", "amount": 11500.0, "status": "مراجَع"}, {"sheet": 34, "date": "2026-08-30", "month": "2026-08", "source": "تأمينات، تكاليف الفرع الثاني، تكاليف مكبس، خامات، مصروف العمال", "amount": 29900.0, "status": "مراجَع"}, {"sheet": 34, "date": "2026-08-30", "month": "2026-08", "source": "عدة، كرتون", "amount": 2300.0, "status": "مراجَع"}, {"sheet": 34, "date": "2026-08-30", "month": "2026-08", "source": "قبض موظفين", "amount": 25748.5, "status": "مراجَع"}, {"sheet": 34, "date": "2026-08-30", "month": "2026-08", "source": "إيجار(الفرع الأول ، الفرع الثاني)", "amount": 8751.5, "status": "مراجَع"}, {"sheet": 35, "date": "2026-09-06", "month": "2026-09", "source": "قبض العمال", "amount": 37950.0, "status": "مراجَع"}, {"sheet": 35, "date": "2026-09-06", "month": "2026-09", "source": "مصروف العمال", "amount": 6900.0, "status": "مراجَع"}, {"sheet": 35, "date": "2026-09-06", "month": "2026-09", "source": "استهلاكات، عدة، محروقات", "amount": 5750.0, "status": "مراجَع"}, {"sheet": 35, "date": "2026-09-06", "month": "2026-09", "source": "كرتون", "amount": 2760.0, "status": "مراجَع"}, {"sheet": 35, "date": "2026-09-06", "month": "2026-09", "source": "أنابيب، تكاليف الفرع الثاني، خامات", "amount": 9200.0, "status": "مراجَع"}, {"sheet": 35, "date": "2026-09-06", "month": "2026-09", "source": "جلبة وسلك", "amount": 22310.0, "status": "مراجَع"}];
+
+const MONTHS = [...new Set(ROWS.map(r => r.month))];
+
+function isDarkMode() {
+  const attr = document.documentElement.getAttribute('data-theme');
+  if (attr === 'dark') return true;
+  if (attr === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function monthColor(idx, total, dark) {
+  // لم تعد الألوان تُولَّد لكل شهر: الشهر على المحور وفي الجدول، فاللون الإضافي
+  // كان زينة تربك الطباعة وقارئ الألوان. لون واحد للجميع، ودرجة أغمق للأعلى.
+  return {
+    dot: cssVar('--chart-bar'),
+    bg: 'transparent',
+    peakDot: cssVar('--chart-bar-peak'),
+  };
+}
+
+// أُزيلت renderRawTable() مع القسم الذي كانت ترسمه (البيانات بندًا بندًا).
+
+// ── Monthly totals: bar chart, cumulative line, summary table ──────────────
+function computeMonthlyTotals() {
+  const totals = {};
+  ROWS.forEach(r => { totals[r.month] = (totals[r.month] || 0) + r.amount; });
+  let cum = 0;
+  return MONTHS.map(m => {
+    cum += totals[m];
+    return { month: m, total: totals[m], cumulative: cum };
+  });
+}
+function monthLabel(m) {
+  const [y, mm] = m.split('-');
+  return MONTH_NAMES[Number(mm) - 1];
+}
+function niceCeil(v) {
+  const mag = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+  return Math.ceil(v / (mag * 5)) * (mag * 5);
+}
+
+// فترة كشوف البنك في عنوان رسم "المصروفات مقابل حركة البنك" — فهي أقصر من فترة
+// المصروفات، وبدونها يُقرأ الشهر الخالي من خطوط البنك كأنه شهر بلا حركة.
+// التواريخ الدقيقة من BALANCE (نقطة لكل معاملة)، وإلا فأشهر BANK.
+function renderBankPeriod() {
+  const elp = document.getElementById('bank-period');
+  if (!elp) return;
+  let text = '';
+  if (typeof BALANCE !== 'undefined' && Array.isArray(BALANCE) && BALANCE.length) {
+    text = `كشوف البنك: ${arDate(BALANCE[0].d)} — ${arDate(BALANCE[BALANCE.length - 1].d)}`;
+  } else if (typeof BANK !== 'undefined' && BANK) {
+    const ms = Object.keys(BANK).sort();
+    if (ms.length) {
+      const yr = m => m.split('-')[0];
+      text = `كشوف البنك: ${monthLabel(ms[0])} ${yr(ms[0])} — ${monthLabel(ms[ms.length - 1])} ${yr(ms[ms.length - 1])}`;
+    }
+  }
+  elp.textContent = text ? `· ${text}` : '';
+}
+
+// الشهر الأخير ناقص إذا كان آخر كشف قبل نهايته. تعريف واحد يستخدمه الملخص
+// والرسوم معًا، حتى لا يختلف ما يقوله النص عمّا تظهره الأعمدة.
+// رقم موجَّه من اليسار إلى اليمين داخل صفحة عربية: بدون العزل تنتقل علامة
+// + / − إلى آخر الرقم فيُقرأ "39,684+".
+const ltr = s => '⁦' + s + '⁩';
+
+// ── مظهر الأعمدة: تدرّج فولاذي خفيف ─────────────────────────────────────────
+// التدرّج رأسي وواحد لكل الأعمدة، فهو زينة لا ترميز: القيمة تبقى في الارتفاع.
+// يُعاد بناؤه مع كل رسم لأن ألوانه تأتي من متغيّرات CSS التي تتغيّر مع الوضع
+// الداكن.
+function addBarDefs(svg, specs) {
+  const defs = el('defs', {});
+  specs.forEach(({ id, top, bottom }) => {
+    const g = el('linearGradient', { id, x1: '0', y1: '0', x2: '0', y2: '1' });
+    g.appendChild(el('stop', { offset: '0', 'stop-color': cssVar(top) }));
+    g.appendChild(el('stop', { offset: '1', 'stop-color': cssVar(bottom) }));
+    defs.appendChild(g);
+  });
+  // ظل خفيف جدًا — الظل الثقيل يتحوّل إلى لطخة رمادية عند الطباعة
+  const f = el('filter', { id: 'bar-shadow', x: '-30%', y: '-20%', width: '160%', height: '150%' });
+  f.appendChild(el('feDropShadow', { dx: '0', dy: '1', stdDeviation: '1.6',
+    'flood-color': '#0f2231', 'flood-opacity': '0.18' }));
+  defs.appendChild(f);
+  svg.appendChild(defs);
+  return defs;
+}
+
+// حافة فاتحة أعلى العمود، كالضوء على سطح مشغول
+function addBarHighlight(svg, x, y, w, color) {
+  if (w < 8) return;
+  svg.appendChild(el('rect', {
+    x: x + 1.5, y: y + 1.5, width: w - 3, height: 2, rx: 1,
+    fill: cssVar(color), opacity: .55
+  }));
+}
+
+function partialMonthKey(monthly) {
+  if (!monthly.length) return null;
+  const last = monthly[monthly.length - 1].month;
+  const [y, m] = last.split('-').map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const lastDay = Number(DATA.date_to.split('-')[2]);
+  return (DATA.date_to.slice(0, 7) === last && lastDay < daysInMonth) ? last : null;
+}
+
+// ── الملخص التنفيذي ────────────────────────────────────────────────────────
+// يقرأ نفس المصادر التي تقرأها بقية الصفحة (ROWS / DATA / REGULAR) ويبني
+// البطاقات والجُمل منها، حتى لا يتعارض رقم في الملخص مع رقم في رسم أدناه.
+const LABOR_LABELS_EXEC = ['قبض العمال', 'قبض موظفين', 'مصروف العمال', 'قبض العيد'];
+const AGGREGATED_LABEL = 'مصروفات مجمعة';
+
+// تمييز العدد في العربية: مفرد/مثنى/جمع قلة/تمييز مفرد منصوب — "5 كشف" ركيكة
+// في تقرير يُرفع للإدارة.
+function arCount(n, one, two, few, many) {
+  if (n === 1) return one;
+  if (n === 2) return two;
+  if (n >= 3 && n <= 10) return `${n} ${few}`;
+  return `${n} ${many}`;
+}
+const sheetsWord = n => arCount(n, 'كشف واحد', 'كشفان', 'كشوف', 'كشفًا');
+const monthsWord = n => arCount(n, 'شهر واحد', 'شهران', 'أشهر', 'شهرًا');
+
+function renderExecSummary() {
+  const grid = document.getElementById('exec-grid');
+  const list = document.getElementById('exec-findings');
+  if (!grid || !list) return;
+
+  const monthly = computeMonthlyTotals();
+  const total = DATA.grand_total;
+
+  // عدد الكشوف في كل شهر: شهر بكشف واحد لا يُقارَن بشهر مكتمل
+  const sheetsIn = {};
+  ROWS.forEach(r => (sheetsIn[r.month] = sheetsIn[r.month] || new Set()).add(r.sheet));
+
+  const byTotal = [...monthly].sort((a, b) => b.total - a.total);
+  const peak = byTotal[0], trough = byTotal[byTotal.length - 1];
+  const avgMonth = total / (monthly.length || 1);
+
+  // المصادر: المجمَّعة ليست مصدرًا واحدًا بل بقية صغيرة، فتُستبعد من "أكبر مصدر"
+  const sources = DATA.slices.filter(s => s.label !== AGGREGATED_LABEL)
+                             .sort((a, b) => b.value - a.value);
+  const topSource = sources[0] || { label: '—', value: 0 };
+  const top5 = sources.slice(0, 5).reduce((s, x) => s + x.value, 0);
+  const labor = DATA.slices.filter(s => LABOR_LABELS_EXEC.includes(s.label))
+                           .reduce((s, x) => s + x.value, 0);
+
+  const regular = (typeof REGULAR !== 'undefined' && Array.isArray(REGULAR)) ? REGULAR : [];
+  const regularTotal = regular.reduce((s, r) => s + (r.amount || 0), 0);
+  const regularName = regular.length ? (regular[0].name_ar || regular[0].name) : '';
+
+  // تُذكر هذه الحقيقة مع أي رقم يخصّ الشهر الناقص، وإلا قُرئ انخفاضه كتراجع في
+  // الإنفاق لا كبيانات لم تكتمل بعد.
+  const partialMonth = partialMonthKey(monthly);
+  const partialNote = m => (m === partialMonth)
+    ? ` · بيانات الشهر غير مكتملة (حتى ${arDate(DATA.date_to)})` : '';
+
+  // عدد الأسابيع = المدى الزمني بين أول كشف وآخره مقيسًا بالأسابيع
+  const spanDays = Math.round(
+    (new Date(DATA.date_to) - new Date(DATA.date_from)) / (24 * 3600 * 1000));
+  const weeks = Math.round(spanDays / 7);
+  // الكشوف ليست أسبوعية بالضبط (منها ما يفصله ١٤ يومًا ومنها ما يفصله يومان)،
+  // فيُذكر المعدّل الفعلي بدل وصفها بـ"أسبوعية".
+  const daysPerSheet = DATA.n_sheets > 1 ? spanDays / (DATA.n_sheets - 1) : 0;
+
+  const kpi = (k, v, s, cls = '', small = false) => `
+    <div class="exec-kpi ${cls}">
+      <div class="k">${k}</div>
+      <div class="v${small ? ' sm' : ''}">${v}</div>
+      ${s ? `<div class="s">${s}</div>` : ''}
+    </div>`;
+
+  document.getElementById('exec-period').textContent =
+    `${arDate(DATA.date_from)} — ${arDate(DATA.date_to)} · ${sheetsWord(DATA.n_sheets)} · ${arCount(DATA.n_rows,'بند واحد','بندان','بنود','بندًا')}`;
+
+  grid.innerHTML = [
+    kpi('إجمالي المصروفات (الكشوف)', fmt(total),
+        `${sheetsWord(DATA.n_sheets)} · ${arCount(weeks, 'أسبوع واحد', 'أسبوعان', 'أسابيع', 'أسبوعًا')} · ${monthsWord(monthly.length)}`),
+    kpi('متوسط الإنفاق الشهري', fmt(avgMonth), 'إجمالي الكشوف ÷ عدد الأشهر', 'accent'),
+    kpi('أعلى شهر إنفاقًا', fmt(peak.total),
+        `${monthLabel(peak.month)} · ${pct(peak.total / total)}٪ من الإجمالي`, 'warm'),
+    kpi('أدنى شهر إنفاقًا', fmt(trough.total),
+        `${monthLabel(trough.month)} · ${sheetsWord(sheetsIn[trough.month].size)}${partialNote(trough.month)}`),
+    kpi('تكلفة العمالة', fmt(labor), `${pct(labor / total)}٪ من إجمالي المصروفات`, 'warm'),
+    kpi('أكبر مصدر صرف', topSource.label,
+        `${fmt(topSource.value)} · ${pct(topSource.value / total)}٪ من الإجمالي`, 'accent', true),
+    regularTotal
+      ? kpi('إجمالي شامل', fmt(total + regularTotal),
+            `يشمل ${fmt(regularTotal)} مصروفات المنزل الثابتة${regularName ? ` (${regularName})` : ''} — خارج الكشوف`)
+      : '',
+  ].join('');
+
+  const lines = [];
+  lines.push(`بلغ إجمالي المصروفات <b>${fmt(total)}</b> من <b>${sheetsWord(DATA.n_sheets)}</b> تغطي <b>${arCount(weeks, 'أسبوعًا واحدًا', 'أسبوعين', 'أسابيع', 'أسبوعًا')}</b> (${monthsWord(monthly.length)})، بمعدل كشف كل <b>${daysPerSheet.toFixed(1)}</b> يوم، وبمتوسط شهري <b>${fmt(avgMonth)}</b>.`);
+  lines.push(`أعلى شهر كان <b>${monthLabel(peak.month)}</b> بـ <b>${fmt(peak.total)}</b> (${pct(peak.total / total)}٪ من الإجمالي)، وأدناه <b>${monthLabel(trough.month)}</b> بـ <b>${fmt(trough.total)}</b> من ${sheetsWord(sheetsIn[trough.month].size)}${trough.month === partialMonth ? ` — وهو شهر <b>لم تكتمل بياناته بعد</b> (آخر كشف في ${arDate(DATA.date_to)})، فلا يُقارَن بشهر كامل` : ''}.`);
+  lines.push(`تمثّل تكلفة العمالة <b>${pct(labor / total)}٪</b> من الإنفاق (<b>${fmt(labor)}</b>) — وهي أكبر أوجه الصرف.`);
+  lines.push(`تتركّز المصروفات في عدد محدود من المصادر: أعلى خمسة منها تستحوذ على <b>${pct(top5 / total)}٪</b> من الإجمالي، أكبرها <b>${topSource.label}</b> بـ <b>${fmt(topSource.value)}</b>.`);
+
+  // آخر شهرين: يُذكر عدد الكشوف لأن الشهر الأخير قد يكون ناقصًا
+  if (monthly.length >= 2) {
+    const last = monthly[monthly.length - 1], prev = monthly[monthly.length - 2];
+    const delta = prev.total ? (last.total - prev.total) / prev.total : 0;
+    const dir = last.total >= prev.total ? 'ارتفاعًا' : 'انخفاضًا';
+    lines.push(`سجّل <b>${monthLabel(last.month)}</b> (${sheetsWord(sheetsIn[last.month].size)}) ${dir} بنسبة <b>${pct(Math.abs(delta))}٪</b> عن <b>${monthLabel(prev.month)}</b> (${sheetsWord(sheetsIn[prev.month].size)}) — ${last.month === partialMonth ? 'والشهر لم يكتمل بعد، فالفارق ناتج عن نقص البيانات لا عن تراجع الإنفاق' : 'تُقرأ النسبة بحذر عند اختلاف عدد الكشوف بين الشهرين'}.`);
+  }
+  if (regularTotal) {
+    lines.push(`إضافة إلى ما سبق، <b>${fmt(regularTotal)}</b> <b>مصروفات المنزل</b> الثابتة شهريًا${regularName ? ` (${regularName})` : ''} تُسحب من البنك مباشرة ولا تظهر في الكشوف، ليصبح الإجمالي الشامل <b>${fmt(total + regularTotal)}</b>.`);
+  }
+
+  list.innerHTML = lines.map(t => `<li>${t}</li>`).join('');
+}
+
+function renderMonthlyBarChart() {
+  const dark = isDarkMode();
+  const data = computeMonthlyTotals();
+  const svg = document.getElementById('month-bar-svg');
+  svg.innerHTML = '';
+  const VW = 1000, VH = 380;
+  const mTop = 24, mBottom = 34, mLeft = 12, mRight = 12;
+  const plotW = VW - mLeft - mRight, plotH = VH - mTop - mBottom;
+  const maxVal = Math.max(...data.map(d => d.total));
+  const niceMax = niceCeil(maxVal);
+  const n = data.length;
+  const slot = plotW / n;
+  const barW = slot * 0.56;
+  const gridColor = cssVar('--border-soft');
+  const faintColor = cssVar('--ink-faint');
+  const inkColor = cssVar('--ink');
+
+  const steps = 5;
+  for (let i = 0; i <= steps; i++) {
+    const val = (niceMax / steps) * i;
+    const y = mTop + plotH - (val / niceMax) * plotH;
+    svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight, y1: y, y2: y, stroke: gridColor, 'stroke-width': 1 }));
+    const label = el('text', { x: VW - mRight, y: y - 4, 'text-anchor': 'end', class: 'month-axis-value', style: 'font-size:10px', fill: faintColor });
+    label.textContent = fmt(val);
+    svg.appendChild(label);
+  }
+
+  // المتوسط الشهري كخط مرجعي: بدونه يُقرأ كل عمود وحده، وبه يُقرأ كل شهر
+  // فوق المعدّل أو تحته.
+  const avg = data.reduce((s, d) => s + d.total, 0) / (data.length || 1);
+  const avgY = mTop + plotH - (avg / niceMax) * plotH;
+  svg.appendChild(el('line', {
+    x1: mLeft, x2: VW - mRight, y1: avgY, y2: avgY,
+    stroke: cssVar('--ink-muted'), 'stroke-width': 1.5, 'stroke-dasharray': '6 5'
+  }));
+  // وسيلة إيضاح أعلى الرسم: النص على الخط نفسه يتقاطع مع الأعمدة
+  const avgText = `المتوسط الشهري ${fmt(avg)}`;
+  const avgLab = el('text', {
+    x: VW - mRight, y: 13, 'text-anchor': 'start', style: 'font-size:10.5px;font-weight:600',
+    fill: cssVar('--ink-muted')
+  });
+  avgLab.textContent = avgText;
+  svg.appendChild(avgLab);
+  const avgW = textWidth(avgText, '600 10.5px ' + getComputedStyle(document.body).fontFamily);
+  svg.appendChild(el('line', {
+    x1: VW - mRight - avgW - 8, x2: VW - mRight - avgW - 32, y1: 9, y2: 9,
+    stroke: cssVar('--ink-muted'), 'stroke-width': 1.5, 'stroke-dasharray': '6 5'
+  }));
+
+  // تظليل مائل للشهر الناقص — علامة تبقى مقروءة في الطباعة بالأبيض والأسود
+  // وعند عمى الألوان، على عكس لون مختلف وحده.
+  const partial = partialMonthKey(data);
+  const defs = addBarDefs(svg, [
+    { id: 'grad-bar', top: '--chart-bar-top', bottom: '--chart-bar-bottom' },
+    { id: 'grad-peak', top: '--chart-peak-top', bottom: '--chart-peak-bottom' },
+  ]);
+  const pat = el('pattern', { id: 'hatch-partial', width: 7, height: 7, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' });
+  pat.appendChild(el('rect', { width: 7, height: 7, fill: cssVar('--surface') }));
+  pat.appendChild(el('rect', { width: 3, height: 7, fill: cssVar('--chart-bar'), opacity: .55 }));
+  defs.appendChild(pat);
+
+  const peakTotal = Math.max(...data.map(d => d.total));
+
+  data.forEach((d, i) => {
+    const cx = mLeft + i * slot + slot / 2;
+    const x = cx - barW / 2;
+    const h = (d.total / niceMax) * plotH;
+    const y = mTop + plotH - h;
+    const isPartial = d.month === partial;
+    const isPeak = d.total === peakTotal && !isPartial;
+    const color = isPartial ? 'url(#hatch-partial)'
+                : isPeak ? 'url(#grad-peak)'
+                : 'url(#grad-bar)';
+    const rect = el('rect', { x, y, width: barW, height: h, fill: color, rx: 5, class: 'month-bar-rect' });
+    if (!isPartial) rect.setAttribute('filter', 'url(#bar-shadow)');
+    if (isPartial) {
+      rect.setAttribute('stroke', cssVar('--chart-bar'));
+      rect.setAttribute('stroke-width', '1.5');
+      rect.setAttribute('stroke-dasharray', '4 3');
+    }
+    if (isPeak || isPartial) {
+      const tag = el('text', {
+        x: i === n - 1 ? cx - 30 : cx, y: y - 24, 'text-anchor': 'middle',
+        style: 'font-size:10.5px;font-weight:700;paint-order:stroke;stroke:' + cssVar('--surface') + ';stroke-width:3px;stroke-linejoin:round',
+        fill: isPeak ? cssVar('--chart-bar-peak') : cssVar('--ink-muted')
+      });
+      tag.textContent = isPeak ? 'أعلى شهر' : 'غير مكتمل';
+      svg.appendChild(tag);
+    }
+    rect.addEventListener('mouseenter', e => showTooltipHTML(e, monthTooltipHTML(d)));
+    rect.addEventListener('mousemove', e => showTooltipHTML(e, monthTooltipHTML(d)));
+    rect.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(rect);
+    if (!isPartial) addBarHighlight(svg, x, y, barW, isPeak ? '--chart-peak-top' : '--chart-bar-top');
+
+    const valLabel = el('text', {
+      x: cx, y: y - 8, 'text-anchor': 'middle', class: 'month-axis-value',
+      style: 'font-size:11px;paint-order:stroke;stroke:' + cssVar('--surface') + ';stroke-width:3px;stroke-linejoin:round',
+      fill: inkColor
+    });
+    valLabel.textContent = fmt(d.total);
+    svg.appendChild(valLabel);
+
+    const nameLabel = el('text', {
+      x: cx, y: VH - mBottom + 20, 'text-anchor': 'middle', class: 'month-axis-label', style: 'font-size:12px', fill: cssVar('--ink-muted')
+    });
+    nameLabel.textContent = monthLabel(d.month);
+    svg.appendChild(nameLabel);
+  });
+}
+
+// جُمل القراءة أسفل الرسوم: الرقم وحده لا يقول شيئًا لمن يقرأ التقرير مرّة
+// واحدة. كلّها مُولَّدة من البيانات فلا تتقادم مع تحديثها.
+function renderChartNotes() {
+  const data = computeMonthlyTotals();
+  const partial = partialMonthKey(data);
+  const total = DATA.grand_total;
+  const avg = data.reduce((s, d) => s + d.total, 0) / (data.length || 1);
+  const full = data.filter(d => d.month !== partial);
+  const above = full.filter(d => d.total > avg).length;
+
+  const barNote = document.getElementById('month-bar-note');
+  if (barNote) {
+    const peak = full.reduce((a, d) => (d.total > a.total ? d : a), full[0]);
+    const low = full.reduce((a, d) => (d.total < a.total ? d : a), full[0]);
+    barNote.innerHTML = `${above} من ${full.length} أشهر كاملة فوق المتوسط. ` +
+      `الفارق بين أعلى شهر (<b>${monthLabel(peak.month)}</b>) وأدناه (<b>${monthLabel(low.month)}</b>) ` +
+      `يبلغ <b>${fmt(peak.total - low.total)}</b> — أي أن أعلى شهر يعادل ${(peak.total / low.total).toFixed(1)} مرة أدناه — ` +
+      `الإنفاق غير مستقر من شهر لآخر، وهو ما يوضّحه الرسم التالي.`;
+  }
+
+  const deltaNote = document.getElementById('month-delta-note');
+  if (deltaNote && data.length > 2) {
+    const deltas = data.slice(1).filter(d => d.month !== partial)
+      .map((d, i) => ({ month: d.month, diff: d.total - data[i].total }));
+    const ups = deltas.filter(d => d.diff > 0).length;
+    const biggest = deltas.reduce((a, d) => (Math.abs(d.diff) > Math.abs(a.diff) ? d : a), deltas[0]);
+    deltaNote.innerHTML = `من ${deltas.length} تغيّرات بين أشهر كاملة: <b>${ups}</b> بالارتفاع و<b>${deltas.length - ups}</b> بالانخفاض — ` +
+      `تذبذب لا اتجاه ثابت. أكبر تغيّر كان في <b>${monthLabel(biggest.month)}</b> بمقدار <b>${fmt(Math.abs(biggest.diff))}</b>. ` +
+      `${partial ? 'عمود الشهر الناقص مظلّل ولا يُقارَن بما قبله.' : ''}`;
+  }
+
+  const tmapNote = document.getElementById('tmap-note');
+  if (tmapNote) {
+    const sources = DATA.slices.filter(sl => sl.label !== AGGREGATED_LABEL)
+      .sort((a, b) => b.value - a.value);
+    const top3 = sources.slice(0, 3);
+    const top3Sum = top3.reduce((sum, x) => sum + x.value, 0);
+    const compound = DATA.slices.filter(sl => sl.compound).reduce((sum, x) => sum + x.value, 0);
+    tmapNote.innerHTML = `أكبر ثلاثة مصادر (${top3.map(x => x.label).join('، ')}) تستحوذ على <b>${pct(top3Sum / total)}٪</b> من الإنفاق. ` +
+      `كما أن <b>${pct(compound / total)}٪</b> منه مسجَّل على بنود مركّبة تحمل أكثر من مصدر، ` +
+      `فلا يمكن نسبته إلى مصدر بعينه دون تفصيل أدق في الكشف نفسه.`;
+  }
+}
+
+function monthTooltipHTML(d) {
+  return `<div class="tt-title">${monthLabel(d.month)} ${d.month.slice(0, 4)}</div>
+    <div class="tt-row"><span>مصروفات الشهر</span><span class="num">${fmt(d.total)}</span></div>
+    <div class="tt-row"><span>الإجمالي المتراكم</span><span class="num">${fmt(d.cumulative)}</span></div>
+    <div class="tt-row"><span>نسبة من إجمالي السنة</span><span class="num">${pct(d.total / DATA.grand_total)}%</span></div>`;
+}
+
+// التغيّر الشهري بدل المنحنى التراكمي: المنحنى التراكمي يصعد دائمًا بحكم
+// تعريفه، فلا يحمل خبرًا؛ أما الفرق عن الشهر السابق فيُظهر الاتجاه مباشرة.
+function renderMonthlyDeltaChart() {
+  const data = computeMonthlyTotals();
+  const svg = document.getElementById('month-delta-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+  const partial = partialMonthKey(data);
+
+  // أول شهر لا سابق له، فلا تغيّر يُحسب له
+  const deltas = data.slice(1).map((d, i) => {
+    const prev = data[i];
+    return { month: d.month, prevMonth: prev.month, total: d.total, prevTotal: prev.total,
+             diff: d.total - prev.total, ratio: prev.total ? (d.total - prev.total) / prev.total : 0,
+             partial: d.month === partial };
+  });
+  if (!deltas.length) return;
+
+  const VW = 1000, VH = 340;
+  const mTop = 30, mBottom = 40, mLeft = 12, mRight = 12;
+  const plotW = VW - mLeft - mRight, plotH = VH - mTop - mBottom;
+  const maxAbs = niceCeil(Math.max(...deltas.map(d => Math.abs(d.diff))) || 1);
+  const n = deltas.length;
+  const slot = plotW / n;
+  const barW = slot * 0.5;
+  const zeroY = mTop + plotH / 2;
+  const scale = v => (v / maxAbs) * (plotH / 2);
+
+  const upColor = cssVar('--chart-up'), downColor = cssVar('--chart-down');
+
+  // شبكة أفقية: ±النصف و±الكامل حول الصفر
+  [-1, -0.5, 0.5, 1].forEach(f => {
+    const y = zeroY - scale(maxAbs * f);
+    svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight, y1: y, y2: y,
+      stroke: cssVar('--border-soft'), 'stroke-width': 1 }));
+    const lab = el('text', { x: VW - mRight, y: y - 4, 'text-anchor': 'start',
+      style: 'font-size:10px', fill: cssVar('--ink-faint') });
+    lab.textContent = ltr((f > 0 ? '+' : '−') + fmt(Math.abs(maxAbs * f)));
+    svg.appendChild(lab);
+  });
+  svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight, y1: zeroY, y2: zeroY,
+    stroke: cssVar('--ink-faint'), 'stroke-width': 1.5 }));
+
+  const defs = addBarDefs(svg, [
+    { id: 'grad-up', top: '--chart-up-top', bottom: '--chart-up-bottom' },
+    { id: 'grad-down', top: '--chart-bar-top', bottom: '--chart-bar-bottom' },
+  ]);
+  const pat = el('pattern', { id: 'hatch-delta', width: 7, height: 7,
+    patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' });
+  pat.appendChild(el('rect', { width: 7, height: 7, fill: cssVar('--surface') }));
+  pat.appendChild(el('rect', { width: 3, height: 7, fill: downColor, opacity: .55 }));
+  defs.appendChild(pat);
+
+  deltas.forEach((d, i) => {
+    const cx = mLeft + i * slot + slot / 2;
+    const up = d.diff >= 0;
+    const h = Math.abs(scale(d.diff));
+    const y = up ? zeroY - h : zeroY;
+    const rect = el('rect', {
+      x: cx - barW / 2, y, width: barW, height: Math.max(h, 1), rx: 4,
+      fill: d.partial ? 'url(#hatch-delta)' : (up ? 'url(#grad-up)' : 'url(#grad-down)'),
+      class: 'month-bar-rect'
+    });
+    if (!d.partial) rect.setAttribute('filter', 'url(#bar-shadow)');
+    if (d.partial) {
+      rect.setAttribute('stroke', downColor);
+      rect.setAttribute('stroke-width', '1.5');
+      rect.setAttribute('stroke-dasharray', '4 3');
+    }
+    const tip = () => `<div class="tt-title">${monthLabel(d.month)} مقابل ${monthLabel(d.prevMonth)}</div>
+      <div class="tt-row"><span>${monthLabel(d.month)}</span><span class="num">${fmt(d.total)}</span></div>
+      <div class="tt-row"><span>${monthLabel(d.prevMonth)}</span><span class="num">${fmt(d.prevTotal)}</span></div>
+      <div class="tt-row"><span>الفرق</span><span class="num">${ltr((up ? '+' : '−') + fmt(Math.abs(d.diff)))} (${pct(Math.abs(d.ratio))}٪)</span></div>
+      ${d.partial ? '<div class="tt-row"><span>تنبيه</span><span>بيانات الشهر غير مكتملة</span></div>' : ''}`;
+    rect.addEventListener('mouseenter', e => showTooltipHTML(e, tip()));
+    rect.addEventListener('mousemove', e => showTooltipHTML(e, tip()));
+    rect.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(rect);
+    // الحافة الفاتحة أعلى العمود الصاعد فقط: الهابط ينمو لأسفل من خط الصفر
+    if (!d.partial && up) addBarHighlight(svg, cx - barW / 2, y, barW, '--chart-up-top');
+
+    // القيمة فوق العمود الصاعد وتحت الهابط، فلا تتقاطع مع خط الصفر
+    // آخر عمود: أرقام المحور على الحافة اليمنى، فتُزاح ملصقاته قليلًا
+    const labX = i === n - 1 ? cx - 28 : cx;
+    const valLabel = el('text', {
+      x: labX, y: up ? y - 7 : y + h + 15, 'text-anchor': 'middle',
+      style: 'font-size:11px;font-weight:600;paint-order:stroke;stroke:' + cssVar('--surface') + ';stroke-width:3px;stroke-linejoin:round',
+      fill: cssVar('--ink')
+    });
+    valLabel.textContent = ltr(`${up ? '+' : '−'}${fmt(Math.abs(d.diff))}`);
+    svg.appendChild(valLabel);
+
+    const pctLabel = el('text', {
+      x: labX, y: up ? y - 21 : y + h + 28, 'text-anchor': 'middle',
+      style: 'font-size:10px;paint-order:stroke;stroke:' + cssVar('--surface') + ';stroke-width:3px;stroke-linejoin:round',
+      fill: cssVar('--ink-faint')
+    });
+    pctLabel.textContent = ltr(`${up ? '+' : '−'}${pct(Math.abs(d.ratio))}٪`);
+    svg.appendChild(pctLabel);
+
+    const nameLabel = el('text', {
+      x: cx, y: VH - 10, 'text-anchor': 'middle', class: 'month-axis-label',
+      style: 'font-size:12px', fill: cssVar('--ink-muted')
+    });
+    nameLabel.textContent = monthLabel(d.month) + (d.partial ? ' *' : '');
+    svg.appendChild(nameLabel);
+  });
+}
+
+function renderMonthlyTable() {
+  const dark = isDarkMode();
+  const data = computeMonthlyTotals();
+  const scope = document.getElementById('months-scope');
+  if (scope) {
+    scope.innerHTML = `${data.length} شهرًا · من ${arDate(DATA.date_from)} إلى ${arDate(DATA.date_to)} · ` +
+      `إجمالي ${fmt(DATA.grand_total)}`;
+  }
+  const tbody = document.getElementById('month-tbl-body');
+  tbody.innerHTML = '';
+  // نفس منطق الرسم أعلاه: الشهر الأعلى وحده بدرجة أغمق، والشهر الناقص مُعلَّم
+  const peakTotal = Math.max(...data.map(d => d.total));
+  const partial = partialMonthKey(data);
+  data.forEach((d, i) => {
+    const color = monthColor(i, data.length, dark);
+    const isPartial = d.month === partial;
+    const isPeak = d.total === peakTotal && !isPartial;
+    const fill = isPeak ? color.peakDot : color.dot;
+    const share = d.total / DATA.grand_total;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="month-dot-cell"><span class="dot" style="background:${fill}"></span></td>
+      <td class="src-name">${monthLabel(d.month)} ${d.month.slice(0, 4)}${isPeak ? ' <span style="color:var(--ink-faint);font-weight:400">— الأعلى</span>' : ''}${isPartial ? ' <span style="color:var(--ink-faint);font-weight:400">— غير مكتمل</span>' : ''}</td>
+      <td class="num-col num">${fmt(d.total)}</td>
+      <td class="num-col num">${fmt(d.cumulative)}</td>
+      <td>
+        <div class="share-bar-wrap">
+          <div class="share-bar-track"><div class="share-bar-fill" style="width:${(share * 100).toFixed(1)}%; background:${fill}${isPartial ? ';opacity:.55' : ''}"></div></div>
+          <span class="num" style="font-size:12px;color:var(--ink-muted);min-width:38px">${pct(share)}%</span>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Expenses vs bank debit/credit per month ────────────────────────────────
+// Monthly sums from the merged bank statements (txn dates 2026-02-08 .. 2026-08-31).
+// balance = closing balance after the month's last transaction, taken from
+// the statement's running balance (same-day rows re-chained by balance, since
+// the export's within-day row order isn't the posting order).
+const BANK = {"2026-02": {"debit": 107887.96, "credit": 137189.79, "balance": 108870.87}, "2026-03": {"debit": 305788.19, "credit": 249890.85, "balance": 52973.53}, "2026-04": {"debit": 169111.78, "credit": 125737.11, "balance": 9598.86}, "2026-05": {"debit": 98500.38, "credit": 206657.47, "balance": 117755.95}, "2026-06": {"debit": 205936.0, "credit": 186727.33, "balance": 98547.29}, "2026-07": {"debit": 192457.34, "credit": 114799.08, "balance": 20889.03}, "2026-08": {"debit": 275307.73, "credit": 274073.09, "balance": 19654.38}};
+
+function renderBankLineChart() {
+  const exp = computeMonthlyTotals();
+  const months = exp.map(d => d.month);
+  const series = [
+    { key: 'exp',    name: 'المصروفات (الكشوف)',   color: cssVar('--series-exp'),    vals: exp.map(d => d.total) },
+    { key: 'debit',  name: 'مسحوبات البنك (مدين)', color: cssVar('--series-debit'),  vals: months.map(m => BANK[m] ? BANK[m].debit : null) },
+    { key: 'credit', name: 'إيداعات البنك (دائن)', color: cssVar('--series-credit'), vals: months.map(m => BANK[m] ? BANK[m].credit : null) },
+    // الرصيد ليس سلسلة هنا — انظر التعليق عند وسيلة الإيضاح في الـ HTML
+  ];
+
+  const svg = document.getElementById('bank-line-svg');
+  svg.innerHTML = '';
+  const VW = 1000, VH = 380;
+  const mTop = 20, mBottom = 34, mLeft = 24, mRight = 70;
+  const plotW = VW - mLeft - mRight, plotH = VH - mTop - mBottom;
+
+  // الأشهر بلا كشف بنكي تُظلَّل على الرسم نفسه: فراغ الخط وحده يُقرأ كصفر،
+  // أي "شهر بلا حركة بنكية"، وهو ليس كذلك — البيانات غير متاحة فحسب.
+  const gapMonths = months.map((m, i) => ({ m, i })).filter(({ m }) => !BANK[m]);
+  gapMonths.forEach(({ i }) => {
+    const half = plotW / Math.max(1, months.length - 1) / 2;
+    const x = mLeft + (i / Math.max(1, months.length - 1)) * plotW;
+    svg.appendChild(el('rect', {
+      x: Math.max(mLeft, x - half), y: mTop,
+      width: Math.min(half * 2, VW - mRight - Math.max(mLeft, x - half)), height: plotH,
+      fill: cssVar('--ink-faint'), opacity: .07
+    }));
+    const lab = el('text', { x, y: mTop + 14, 'text-anchor': 'middle',
+      style: 'font-size:10px', fill: cssVar('--ink-faint') });
+    lab.textContent = 'لا كشف بنكي';
+    svg.appendChild(lab);
+  });
+  const all = series.flatMap(s => s.vals).filter(v => v != null);
+  const niceMax = niceCeil(Math.max(...all));
+  const n = months.length;
+  const xAt = i => mLeft + (i / (n - 1)) * plotW;
+  const yAt = v => mTop + plotH - (v / niceMax) * plotH;
+
+  const steps = 5;
+  for (let i = 0; i <= steps; i++) {
+    const val = (niceMax / steps) * i;
+    const y = yAt(val);
+    svg.appendChild(el('line', { x1: mLeft, x2: VW - mRight + 8, y1: y, y2: y, stroke: cssVar('--border-soft'), 'stroke-width': 1 }));
+    const label = el('text', { x: VW - 4, y: y + 4, 'text-anchor': 'end', class: 'month-axis-value', style: 'font-size:10px', fill: cssVar('--ink-faint') });
+    label.textContent = fmt(val);
+    svg.appendChild(label);
+  }
+
+  months.forEach((m, i) => {
+    const t = el('text', { x: xAt(i), y: VH - mBottom + 22, 'text-anchor': 'middle', class: 'month-axis-label', style: 'font-size:12px', fill: cssVar('--ink-muted') });
+    t.textContent = monthLabel(m);
+    svg.appendChild(t);
+  });
+
+  const cross = el('line', { x1: 0, x2: 0, y1: mTop, y2: mTop + plotH, stroke: cssVar('--ink-faint'), 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0 });
+  svg.appendChild(cross);
+
+  // Lines break at months with no data instead of dropping to zero.
+  series.forEach(s => {
+    let seg = [];
+    const flush = () => {
+      if (seg.length > 1) {
+        svg.appendChild(el('path', { d: 'M ' + seg.map(p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' L '), fill: 'none', stroke: s.color, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', ...(s.dashed ? { 'stroke-dasharray': '7 5' } : {}) }));
+      }
+      seg = [];
+    };
+    s.vals.forEach((v, i) => { if (v == null) flush(); else seg.push([xAt(i), yAt(v)]); });
+    flush();
+  });
+
+  series.forEach(s => {
+    s.vals.forEach((v, i) => {
+      if (v == null) return;
+      svg.appendChild(el('circle', { cx: xAt(i), cy: yAt(v), r: 4.5, fill: s.color, stroke: cssVar('--surface'), 'stroke-width': 2 }));
+    });
+  });
+
+  const colW = plotW / (n - 1);
+  months.forEach((m, i) => {
+    const hit = el('rect', { x: xAt(i) - colW / 2, y: mTop, width: colW, height: plotH, fill: 'transparent', style: 'cursor:pointer' });
+    const show = e => {
+      cross.setAttribute('x1', xAt(i)); cross.setAttribute('x2', xAt(i)); cross.setAttribute('opacity', 1);
+      const rows = series.map(s => {
+        const v = s.vals[i];
+        return `<div class="tt-row"><span class="tt-key"><i style="background:${s.color}"></i>${s.name}</span><span class="num">${v == null ? '—' : fmt(v)}</span></div>`;
+      }).join('');
+      const b = BANK[m];
+      const net = b ? `<div class="tt-note">صافي حركة البنك (إيداع − سحب): <span class="num">${b.credit - b.debit >= 0 ? '+' : '−'}${fmt(Math.abs(b.credit - b.debit))}</span></div>`
+                    : `<div class="tt-note">لا توجد كشوف بنك لهذا الشهر</div>`;
+      const partial = m === '2026-02' ? `<div class="tt-note">أرقام البنك لفبراير جزئية (من 8 فبراير)</div>` : '';
+      showTooltipHTML(e, `<div class="tt-title">${monthLabel(m)} ${m.slice(0, 4)}</div>${rows}${net}${partial}`);
+    };
+    hit.addEventListener('mouseenter', show);
+    hit.addEventListener('mousemove', show);
+    hit.addEventListener('mouseleave', () => { cross.setAttribute('opacity', 0); hideTooltip(); });
+    svg.appendChild(hit);
+  });
+}
+
+render();
+renderExecSummary();
+renderBankPeriod();
+renderMonthlyBarChart();
+renderMonthlyDeltaChart();
+renderBankLineChart();
+renderChartNotes();
+renderLaborChart();
+renderBalanceRangeChart();
+renderBalanceChart();
+renderAtomicTable();
+renderMonthlyTable();
+const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+function refreshAll() {
+  try {
+  render();
+  renderExecSummary();
+  renderBankPeriod();
+  renderMonthlyBarChart();
+  renderMonthlyDeltaChart();
+  renderBankLineChart();
+  renderChartNotes();
+  renderLaborChart();
+  renderBalanceRangeChart();
+  renderBalanceChart();
+  renderAtomicTable();
+  renderMonthlyTable();
+} catch (err) {
+  document.body.innerHTML =
+    '<div style="padding:20px;font-family:Arial;color:red">' +
+    'JavaScript Error:<br><pre>' +
+    err.message +
+    '</pre></div>';
+
+  console.error(err);
+}
+}
+
+if (mediaQuery.addEventListener) {
+  mediaQuery.addEventListener('change', refreshAll);
+} else if (mediaQuery.addListener) {
+  mediaQuery.addListener(refreshAll);
+}
+window.addEventListener('resize', () => {});
+</script>
